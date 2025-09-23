@@ -42,7 +42,7 @@ git clone https://github.com/Drtxdt/HNU-Script.git
 
 ## 具体介绍
 
-**所有脚本的退出方法都是系统托盘右键->Exit
+**所有脚本的退出方法都是系统托盘右键->Exit**
 
 ### Discrete_Mathematics.ahk
 
