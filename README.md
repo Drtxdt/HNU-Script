@@ -14,6 +14,7 @@
 | ------------------------ | --------------------------------------------------- |
 | Discrete_Mathematics.ahk | 离散数学粘贴工具（适用于罗纲/杨圣洪老师开发的软件） |
 | code.ahk                 | 超星在线代码框粘贴工具                              |
+| Karnaugh-map-killer.py   | 数电的一键卡诺图绘制工具，并可以生成答案            |
 
 ## 环境要求
 
@@ -21,6 +22,7 @@
 
 - Windows 7 或更高版本的操作系统
 - [AutoHotkey v2.0](https://www.autohotkey.com/) 或更高版本 **本项目所有脚本为v2.0标准，不兼容v1.0**
+- Python3.10 或更高版本
 
 ## 快速开始
 
@@ -40,9 +42,11 @@ git clone https://github.com/Drtxdt/HNU-Script.git
 
 双击即可运行脚本
 
+Python脚本使用方法详见具体介绍
+
 ## 具体介绍
 
-**所有脚本的退出方法都是系统托盘右键->Exit**
+**所有AutoHotkey脚本的退出方法都是系统托盘右键->Exit**
 
 ### Discrete_Mathematics.ahk
 
@@ -61,3 +65,26 @@ git clone https://github.com/Drtxdt/HNU-Script.git
 原理：逐个发送字符，并防止网站的花括号自动补全导致错误
 
 使用前，你必须确保剪贴板中有文字
+
+### Karnaugh-map-killer.py
+
+这是一键完成所有关于卡诺图的问题的脚本，支持2~4个变量且支持4变量卡诺图的绘制。支持无关项。
+
+要使用它，首先应该转到文件夹：
+
+```bash
+cd Karnaugh-map-killer
+```
+
+然后安装依赖：
+
+```bash
+pip install -r requirements.txt
+```
+
+最后运行即可
+
+```bash
+python Karnaugh-map-killer.py
+```
+
