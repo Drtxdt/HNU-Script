@@ -1,0 +1,11 @@
+[
+  {"name":"经典例题 · (a|b)*abb", "mode":"expression", "source":"(a|b)*abb", "input":"abababb", "note":"课件 79–115 页：从基本片段、Thompson 构造到子集构造。接受仅由 a、b 组成且以 abb 结尾的字符串。编号与课件可以不同。"},
+  {"name":"基本运算 · 并与连接", "mode":"expression", "source":"a|bc", "input":"bc", "note":"课件 38、78–81 页：连接优先于并，等价于 a|(bc)。"},
+  {"name":"闭包 · 零次或多次", "mode":"expression", "source":"a*", "input":"", "note":"课件 83–85 页：空串也匹配，ε 迁移不消耗输入字符。"},
+  {"name":"正闭包 · 防止倒灌", "mode":"expression", "source":"a+b+", "input":"abab", "note":"课件 124–125 页：aabbb 匹配，abab 不匹配；连接时不能错误共享或合并状态。"},
+  {"name":"可选 · 零次或一次", "mode":"expression", "source":"ab?", "input":"a", "note":"课件 86 页：匹配 a 或 ab。"},
+  {"name":"命名定义 · 标识符", "mode":"definitions", "source":"letter → [A-Za-z_]\ndigit → [0-9]\nid → letter(letter|digit)*", "input":"initial_10", "note":"课件 39、43 页：以字母或下划线开头。裸名称引用前面的定义，字面文字加引号。"},
+  {"name":"命名定义 · 数值", "mode":"definitions", "source":"digit → [0-9]\ndigits → digit+\nfraction → ('.'digits)?\nexponent → ('E'('+'|'-')?digits)?\nnumber → digits fraction exponent", "input":"12.1E-3", "note":"课件 40、45 页：整数、带小数部分和可选指数的数值。允许 01，不接受 1.。本页只判断匹配，不区分词法类别。"},
+  {"name":"字符类 · 重叠与取反", "mode":"expression", "source":"[a-c]|[^b]", "input":"b", "note":"课件 41、43 页：字符类按 ASCII 0–127 解释。互相重叠的字符集合在子集构造前拆成互不重叠的组。"},
+  {"name":"转义 · 空白字符", "mode":"expression", "source":"[ \\t\\r\\n]+", "input":" \t", "note":"课件 43、50 页：本工具统一使用反斜杠转义，将课件 /t、/r、/n 写为 \\t、\\r、\\n。"}
+]

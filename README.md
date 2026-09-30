@@ -15,6 +15,7 @@
 | Discrete_Mathematics.ahk | 离散数学粘贴工具（适用于罗纲/杨圣洪老师开发的软件） |
 | code.ahk                 | 超星在线代码框粘贴工具                              |
 | Karnaugh-map-killer.py   | 数电的一键卡诺图绘制工具，并可以生成答案            |
+| Compiler-Lexer-Killer | 编译原理词法分析实验室：正则、AST、NFA、DFA 和字符串模拟 |
 
 ## 环境要求
 
@@ -88,3 +89,11 @@ pip install -r requirements.txt
 python Karnaugh-map-killer.py
 ```
 
+
+### Compiler-Lexer-Killer
+
+编译原理词法分析可视化工具，支持课件式命名定义、Thompson NFA、DFA 子集构造、转换表及逐字符模拟，可单步、后退和自动播放。
+
+本工具独立要求 **Windows 10（1809 起）/ Windows 11 x64**。便携包解压后运行 `Compiler-Lexer-Killer.exe`，无需安装 Python 或 Graphviz。
+
+源码运行、输入语法、CLI 和构建方式见 [工具说明](Compiler-Lexer-Killer/README.md)。

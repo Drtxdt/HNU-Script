@@ -1,0 +1,7 @@
+{
+  "Graphviz-COPYING.txt": "https://gitlab.com/api/v4/projects/4207231/repository/files/epl-v10.txt/raw?ref=12.2.1",
+  "Qt-LGPL-3.0.txt": "https://raw.githubusercontent.com/qt/qtbase/v6.10.1/LICENSES/LGPL-3.0-only.txt",
+  "Qt-GPL-3.0.txt": "https://raw.githubusercontent.com/qt/qtbase/v6.10.1/LICENSES/GPL-3.0-only.txt",
+  "Expat-MIT.txt": "https://raw.githubusercontent.com/libexpat/libexpat/R_2_6_4/expat/COPYING",
+  "zlib-LICENSE.txt": "https://raw.githubusercontent.com/madler/zlib/v1.3.1/LICENSE"
+}

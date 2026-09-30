@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "compiler-lexer-killer"
+version = "1.0.0"
+description = "Chinese offline regex, NFA and DFA teaching laboratory"
+requires-python = ">=3.10"
+dependencies = ["PySide6==6.10.1"]
+
+[project.scripts]
+compiler-lexer-cli = "compiler_lexer_killer.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["compiler_lexer_killer*"]
+
+[tool.setuptools.package-data]
+compiler_lexer_killer = ["presets/*.json", "ui/*.qss"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
