@@ -1,0 +1,73 @@
+{
+  "format_version": 1,
+  "mode": "expression",
+  "source": "(a|b)*abb",
+  "input": "abababb",
+  "definitions": "digit -> [0-9]\ndigits -> digit+",
+  "rules": [
+    {
+      "name": "SCIENTIFIC",
+      "pattern": "digits('.'digits)?'E'('+'|'-')?digits",
+      "category": "scientific",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "FLOAT",
+      "pattern": "digits'.'digits",
+      "category": "float",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "INTEGER",
+      "pattern": "digits",
+      "category": "integer",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "WS",
+      "pattern": "[ \\t\\r\\n]+",
+      "category": "",
+      "skip": true,
+      "enabled": true
+    }
+  ],
+  "lexer_input": "12 12.1 12.1E3 01 3E-2",
+  "drawing": {
+    "kind": "dfa",
+    "nodes": [
+      {
+        "id": 0,
+        "label": "S0",
+        "start": true,
+        "accept": false,
+        "category": "",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "id": 1,
+        "label": "S1",
+        "start": false,
+        "accept": true,
+        "category": "",
+        "x": 100,
+        "y": 90
+      }
+    ],
+    "edges": [
+      {
+        "source": 0,
+        "target": 1,
+        "label": "[\\x61]"
+      },
+      {
+        "source": 1,
+        "target": 1,
+        "label": "[\\x61]"
+      }
+    ]
+  }
+}

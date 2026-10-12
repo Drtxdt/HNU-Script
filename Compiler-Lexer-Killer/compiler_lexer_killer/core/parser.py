@@ -195,6 +195,10 @@ def parse_expression(text, definitions=None, offset=0, line=1, column=1, context
     return values[0]
 
 
+def parse_definitions(source, context=None):
+    return _definitions(source, context)
+
+
 def parse(source, mode="expression", entry=None, context: Context | None = None):
     if len(source) > 65_536:
         raise CompileError("输入超过 65,536 个字符，请缩小定义")
@@ -202,6 +206,18 @@ def parse(source, mode="expression", entry=None, context: Context | None = None)
         return parse_expression(source, context=context), (), None
     if mode != "definitions":
         raise CompileError("未知输入模式")
+    definitions = _definitions(source, context)
+    if not definitions:
+        raise CompileError("请至少输入一行命名定义")
+    chosen = entry or next(reversed(definitions))
+    if chosen not in definitions:
+        raise CompileError(f"入口 {chosen!r} 不存在")
+    return definitions[chosen], tuple(definitions), chosen
+
+
+def _definitions(source, context=None):
+    if len(source) > 65_536:
+        raise CompileError("输入超过 65,536 个字符，请缩小定义")
     definitions = {}
     offset = 0
     for number, raw in enumerate(source.splitlines(keepends=True), 1):
@@ -224,9 +240,4 @@ def parse(source, mode="expression", entry=None, context: Context | None = None)
             begin = index + arrow
             definitions[name] = parse_expression(line[begin:], definitions, offset + begin, number, begin + 1, context)
         offset += len(raw)
-    if not definitions:
-        raise CompileError("请至少输入一行命名定义")
-    chosen = entry or next(reversed(definitions))
-    if chosen not in definitions:
-        raise CompileError(f"入口 {chosen!r} 不存在")
-    return definitions[chosen], tuple(definitions), chosen
+    return definitions

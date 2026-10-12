@@ -1,0 +1,143 @@
+{
+  "format_version": 1,
+  "mode": "expression",
+  "source": "(a|b)*abb",
+  "input": "abababb",
+  "definitions": "letter -> [A-Za-z_]\ndigit -> [0-9]\ndigits -> digit+",
+  "rules": [
+    {
+      "name": "IF",
+      "pattern": "'if'",
+      "category": "reserved",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "INT",
+      "pattern": "'int'",
+      "category": "reserved",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "ID",
+      "pattern": "letter(letter|digit)*",
+      "category": "id",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "NUMBER",
+      "pattern": "digits('.'digits)?('E'('+'|'-')?digits)?",
+      "category": "number",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "LE",
+      "pattern": "'<='",
+      "category": "",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "LT",
+      "pattern": "'<'",
+      "category": "",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "INC",
+      "pattern": "'++'",
+      "category": "",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "PLUS",
+      "pattern": "'+'",
+      "category": "",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "LPAREN",
+      "pattern": "'('",
+      "category": "",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "RPAREN",
+      "pattern": "')'",
+      "category": "",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "ASSIGN",
+      "pattern": "'='",
+      "category": "",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "SEMI",
+      "pattern": "';'",
+      "category": "",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "COMMENT",
+      "pattern": "'//'[^\\r\\n]*",
+      "category": "",
+      "skip": true,
+      "enabled": true
+    },
+    {
+      "name": "WS",
+      "pattern": "[ \\t\\r\\n]+",
+      "category": "",
+      "skip": true,
+      "enabled": true
+    }
+  ],
+  "lexer_input": "if(initial<=10)\nint count=12; // example\ncount++;",
+  "drawing": {
+    "kind": "dfa",
+    "nodes": [
+      {
+        "id": 0,
+        "label": "S0",
+        "start": true,
+        "accept": false,
+        "category": "",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "id": 1,
+        "label": "S1",
+        "start": false,
+        "accept": true,
+        "category": "",
+        "x": 100,
+        "y": 90
+      }
+    ],
+    "edges": [
+      {
+        "source": 0,
+        "target": 1,
+        "label": "[\\x61]"
+      },
+      {
+        "source": 1,
+        "target": 1,
+        "label": "[\\x61]"
+      }
+    ]
+  }
+}

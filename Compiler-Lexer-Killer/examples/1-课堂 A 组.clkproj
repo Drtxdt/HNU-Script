@@ -1,0 +1,73 @@
+{
+  "format_version": 1,
+  "mode": "expression",
+  "source": "(a|b)*abb",
+  "input": "abababb",
+  "definitions": "letter -> [A-Za-z]",
+  "rules": [
+    {
+      "name": "IF",
+      "pattern": "'if'",
+      "category": "reserved",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "INT",
+      "pattern": "'int'",
+      "category": "reserved",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "ID",
+      "pattern": "letter+",
+      "category": "id",
+      "skip": false,
+      "enabled": true
+    },
+    {
+      "name": "WS",
+      "pattern": "[ \\t\\r\\n]+",
+      "category": "",
+      "skip": true,
+      "enabled": true
+    }
+  ],
+  "lexer_input": "if iff int integer",
+  "drawing": {
+    "kind": "dfa",
+    "nodes": [
+      {
+        "id": 0,
+        "label": "S0",
+        "start": true,
+        "accept": false,
+        "category": "",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "id": 1,
+        "label": "S1",
+        "start": false,
+        "accept": true,
+        "category": "",
+        "x": 100,
+        "y": 90
+      }
+    ],
+    "edges": [
+      {
+        "source": 0,
+        "target": 1,
+        "label": "[\\x61]"
+      },
+      {
+        "source": 1,
+        "target": 1,
+        "label": "[\\x61]"
+      }
+    ]
+  }
+}

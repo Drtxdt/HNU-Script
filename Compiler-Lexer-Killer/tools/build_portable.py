@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import runpy
 import urllib.request
 import zipfile
 import pefile
@@ -13,6 +14,7 @@ import PySide6
 
 ROOT = Path(__file__).resolve().parents[1]
 NAME = "Compiler-Lexer-Killer"
+VERSION = runpy.run_path(str(ROOT / "compiler_lexer_killer/__init__.py"))["__version__"]
 
 
 def graphviz_runtime():
@@ -75,9 +77,12 @@ def main():
         raise RuntimeError("Build with Python 3.11 on Windows x64")
     graphviz = graphviz_runtime()
     licenses = prepare_licenses()
+    version_file = ROOT / "build/version_info.txt"
+    numbers = tuple(map(int, VERSION.split("."))) + (0,)
+    version_file.write_text(f'''VSVersionInfo(ffi=FixedFileInfo(filevers={numbers!r}, prodvers={numbers!r}, mask=0x3f, flags=0x0, OS=0x40004, fileType=0x1, subtype=0x0, date=(0,0)), kids=[StringFileInfo([StringTable('040904B0', [StringStruct('FileDescription', 'Compiler Lexer Killer'), StringStruct('FileVersion', '{VERSION}'), StringStruct('ProductName', 'Compiler Lexer Killer'), StringStruct('ProductVersion', '{VERSION}')])]), VarFileInfo([VarStruct('Translation', [1033,1200])])])''', encoding="utf-8")
     command = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--windowed", "--onedir", "--noupx",
                "--name", NAME, "--distpath", str(ROOT / "dist"), "--workpath", str(ROOT / "build/pyinstaller"),
-               "--specpath", str(ROOT / "build"),
+               "--specpath", str(ROOT / "build"), "--version-file", str(version_file),
                "--add-data", f"{ROOT / 'compiler_lexer_killer/presets'};compiler_lexer_killer/presets",
                "--add-data", f"{ROOT / 'compiler_lexer_killer/ui/styles.qss'};compiler_lexer_killer/ui",
                "--add-data", f"{graphviz};vendor/graphviz",
@@ -101,16 +106,19 @@ def main():
             shutil.copy2(runtime, destination / "_internal" / runtime.name)
     shutil.copy2(ROOT / "README.md", destination / "README.md")
     shutil.copy2(ROOT / "THIRD_PARTY_NOTICES.md", destination / "THIRD_PARTY_NOTICES.md")
+    shutil.copy2(ROOT / "VALIDATION.md", destination / "VALIDATION.md")
+    if (ROOT / "examples").exists():
+        shutil.copytree(ROOT / "examples", destination / "examples", dirs_exist_ok=True)
     shutil.copy2(ROOT / "vendor/graphviz-checksum.txt", destination / "graphviz-checksum.txt")
     # Ship the complete application source alongside dynamic Qt libraries.
     with zipfile.ZipFile(destination / "source.zip", "w", zipfile.ZIP_DEFLATED) as archive:
-        for base in (ROOT / "compiler_lexer_killer", ROOT / "tests", ROOT / "tools", ROOT / "licenses"):
+        for base in (ROOT / "compiler_lexer_killer", ROOT / "tests", ROOT / "tools", ROOT / "licenses", ROOT / "examples"):
             for path in sorted(base.rglob("*")):
                 if path.is_file() and "__pycache__" not in path.parts:
                     archive.write(path, path.relative_to(ROOT))
-        for name in ("main.py", "pyproject.toml", "requirements.txt", "requirements-dev.txt", "requirements-lock.txt", "README.md", "THIRD_PARTY_NOTICES.md"):
+        for name in ("main.py", "pyproject.toml", "requirements.txt", "requirements-dev.txt", "requirements-lock.txt", "README.md", "VALIDATION.md", "THIRD_PARTY_NOTICES.md"):
             archive.write(ROOT / name, name)
-    archive = Path(shutil.make_archive(str(ROOT / "dist" / f"{NAME}-1.0.0-win64"), "zip", ROOT / "dist", NAME))
+    archive = Path(shutil.make_archive(str(ROOT / "dist" / f"{NAME}-{VERSION}-win64"), "zip", ROOT / "dist", NAME))
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
     archive.with_suffix(".zip.sha256").write_text(f"{digest}  {archive.name}\n", encoding="ascii")
     print(f"Portable archive: {archive}\nSHA256: {digest}")

@@ -27,17 +27,43 @@ def find_dot():
 def graph_data(compilation, kind):
     if kind == "nfa":
         nfa = compilation.nfa
-        nodes = [(s, f"q{s}", s in nfa.accepts, f"NFA 状态 q{s}") for s in nfa.states]
+        tags = dict(nfa.accepting_rules)
+        nodes = [(s, f"q{s}", s in nfa.accepts, f"NFA 状态 q{s}" + "\n" + ", ".join(r.output for r in tags.get(s, ()))) for s in nfa.states]
         edges = [(e.source, e.target, charset_label(e.chars)) for e in nfa.edges]
         return nodes, edges, nfa.start
     dfa = compilation.dfa
-    nodes = [(s.id, f"S{s.id}", s.accepting, f"S{s.id} = {set_label(s.nfa_states)}" + ("\n接受状态" if s.accepting else "")) for s in dfa.states]
+    nodes = [(s.id, f"S{s.id}", s.accepting, (f"原 DFA 成员 {set_label(s.members)}" if s.members else f"NFA 集合 {set_label(s.nfa_states)}")
+              + ("\n候选：" + ", ".join(r.name for r in s.candidates) if s.candidates else "")
+              + (f"\n获胜：{s.winner.name} → {s.winner.output}" if s.winner else "")
+              + ("\n接受状态" if s.accepting else "")) for s in dfa.states]
     edges = [(i, target, charset_label(dfa.alphabet[j])) for i, row in enumerate(dfa.transitions) for j, target in enumerate(row)]
     return nodes, edges, dfa.start
 
 
 def compute_layout(compilation, kind, cancelled=lambda: False):
     nodes, edges, start = graph_data(compilation, kind)
+    return compute_data_layout(nodes, edges, start, cancelled)
+
+
+def machine_layout(machine, cancelled=lambda: False):
+    from types import SimpleNamespace
+    from ..core.model import NFA
+    kind = "nfa" if isinstance(machine, NFA) else "dfa"
+    return compute_layout(SimpleNamespace(**{kind: machine}), kind, cancelled)
+
+
+def history_layout(graphs, cancelled=lambda: False):
+    nodes, edges = {}, {}
+    for graph in graphs:
+        for state in graph.states:
+            nodes[state] = (state, f"q{state}", state in graph.accepts, f"状态 q{state}")
+        for edge in graph.edges:
+            key = (edge.source, edge.target, charset_label(edge.chars))
+            edges[key] = key
+    return compute_data_layout(list(nodes.values()), list(edges.values()), graphs[-1].start, cancelled)
+
+
+def compute_data_layout(nodes, edges, start, cancelled=lambda: False):
     lines = ['digraph G { graph [rankdir=LR, nodesep=0.45, ranksep=0.65];',
              'node [shape=circle, fontname="Arial", fontsize=12, width=0.58];',
              'edge [fontname="Arial", fontsize=11];']

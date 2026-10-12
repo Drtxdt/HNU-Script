@@ -43,15 +43,6 @@ class BuildWorker(QThread):
             self.failed.emit(self.generation, exc)
 
 
-def formula():
-    label = QLabel("生成自动机后，点击下一步开始推导。")
-    label.setObjectName("formula")
-    label.setWordWrap(True)
-    label.setMinimumHeight(60)
-    label.setTextFormat(Qt.PlainText)
-    label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-    return label
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -74,9 +65,11 @@ class MainWindow(QMainWindow):
         header = QHBoxLayout()
         titles = QVBoxLayout()
         title = QLabel("词法分析实验室")
+        self.brand_title = title
         title.setObjectName("title")
         titles.addWidget(title)
         subtitle = QLabel("COMPILER LEXER KILLER    /    把每一次状态迁移看清楚")
+        self.brand_subtitle = subtitle
         subtitle.setObjectName("subtitle")
         titles.addWidget(subtitle)
         header.addLayout(titles)
@@ -128,72 +121,22 @@ class MainWindow(QMainWindow):
         self.splitter.addWidget(sidebar)
 
         self.tabs = QTabWidget()
-        nfa_page = QWidget()
-        nfa_box = QVBoxLayout(nfa_page)
-        self.nfa_graph = GraphView("THOMPSON NFA")
-        self.nfa_formula = formula()
-        self.nfa_timeline = Timeline()
-        nfa_box.addWidget(self.nfa_graph, 1)
-        nfa_box.addWidget(self.nfa_formula)
-        nfa_box.addWidget(self.nfa_timeline)
+        from .construction_pages import NfaPage, DfaPage, SimulationPage
+        nfa_page, dfa_page, sim_page = NfaPage(), DfaPage(), SimulationPage()
+        self.nfa_graph, self.nfa_formula, self.nfa_timeline = nfa_page.graph, nfa_page.formula, nfa_page.timeline
+        self.subset_nfa, self.dfa_graph, self.table = dfa_page.nfa, dfa_page.dfa, dfa_page.table
+        self.dfa_formula, self.dfa_timeline = dfa_page.formula, dfa_page.timeline
+        self.input, self.run_button, self.tape = sim_page.input, sim_page.run, sim_page.tape
+        self.sim_graph, self.sim_log = sim_page.graph, sim_page.log
+        self.sim_formula, self.sim_timeline = sim_page.formula, sim_page.timeline
         self.tabs.addTab(nfa_page, "01   正则 → NFA")
-
-        dfa_page = QWidget()
-        dfa_box = QVBoxLayout(dfa_page)
-        graph_splitter = QSplitter(Qt.Horizontal)
-        self.subset_nfa = GraphView("NFA · 当前集合 / 迁移")
-        self.dfa_graph = GraphView("DFA · 已发现状态")
-        graph_splitter.addWidget(self.subset_nfa)
-        graph_splitter.addWidget(self.dfa_graph)
-        self.table = QTableWidget()
-        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.table.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.table.verticalHeader().hide()
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.table.setMinimumHeight(120)
-        vertical = QSplitter(Qt.Vertical)
-        vertical.addWidget(graph_splitter)
-        vertical.addWidget(self.table)
-        vertical.setSizes([460, 210])
-        self.dfa_formula = formula()
-        self.dfa_timeline = Timeline()
-        dfa_box.addWidget(vertical, 1)
-        dfa_box.addWidget(self.dfa_formula)
-        dfa_box.addWidget(self.dfa_timeline)
         self.tabs.addTab(dfa_page, "02   NFA → DFA")
-
-        sim_page = QWidget()
-        sim_box = QVBoxLayout(sim_page)
-        input_row = QHBoxLayout()
-        self.input = QPlainTextEdit()
-        self.input.setPlaceholderText("输入待匹配字符串；留空表示空串。空格、换行不会被删除。")
-        self.input.setMaximumHeight(85)
-        self.run_button = QPushButton("开始模拟")
-        self.run_button.setObjectName("primary")
-        self.run_button.setEnabled(False)
-        input_row.addWidget(self.input, 1)
-        input_row.addWidget(self.run_button)
-        sim_box.addLayout(input_row)
-        self.tape = QLabel("输入完整保留空白 · 最终必须停在接受状态")
-        self.tape.setWordWrap(True)
-        self.tape.setMinimumHeight(35)
-        sim_box.addWidget(self.tape)
-        self.sim_graph = GraphView("DFA · 字符串模拟")
-        self.sim_log = QListWidget()
-        sim_splitter = QSplitter(Qt.Horizontal)
-        sim_splitter.addWidget(self.sim_graph)
-        sim_splitter.addWidget(self.sim_log)
-        sim_splitter.setSizes([650, 260])
-        sim_box.addWidget(sim_splitter, 1)
-        self.sim_formula = formula()
-        self.sim_timeline = Timeline()
-        sim_box.addWidget(self.sim_formula)
-        sim_box.addWidget(self.sim_timeline)
         self.tabs.addTab(sim_page, "03   字符串模拟")
         self.splitter.addWidget(self.tabs)
         self.splitter.setSizes([310, 1060])
         outer.addWidget(self.splitter, 1)
         legend = QLabel("开始 → 初态     双圈 / 绿色：接受状态     蓝色：当前步骤     ε：不消耗字符     ∅：空状态集合")
+        self.legend = legend
         legend.setObjectName("subtitle")
         outer.addWidget(legend)
         self.statusBar().showMessage("离线运行 · ASCII 0–127 · 状态编号本身没有数学意义，不同构造可得到等价自动机")
@@ -514,7 +457,8 @@ def main():
     app.setStyle("Fusion")
     app.setFont(QFont("Microsoft YaHei UI", 10))
     app.setStyleSheet((PACKAGE / "ui/styles.qss").read_text(encoding="utf-8"))
-    window = MainWindow()
+    from .lab import LabWindow
+    window = LabWindow()
     window.show()
     if "--smoke-test" in sys.argv:
         from .smoke import attach_smoke
