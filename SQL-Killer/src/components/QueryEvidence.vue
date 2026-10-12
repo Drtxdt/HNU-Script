@@ -1,0 +1,8 @@
+<script setup lang="ts">
+import {computed,ref,watch} from 'vue';import type {Wire} from '../api';import type {TraceStep} from '../generated/TraceStep';
+const props=defineProps<{step:Wire<TraceStep>}>();const selected=ref(0);watch(()=>props.step,()=>selected.value=0);
+const row=computed(()=>props.step.table.rows[selected.value]);
+const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
+const evidence=computed(()=>{const s=props.step;if(!row.value)return[];return s.details.map((input,side)=>{const offset=side===1&&s.details[0].columns.length+input.columns.length===s.table.columns.length?s.details[0].columns.length:0;const pairs=input.columns.map((name,i)=>({input:i,output:s.kind==='join'&&s.details[0].columns.length+input.columns.length===s.table.columns.length?i+offset:s.table.columns.indexOf(name)})).filter(p=>p.output>=0);const matches=input.rows.flatMap((r,i)=>pairs.length&&pairs.every(p=>same(r[p.input],row.value![p.output]))?[i+1]:[]);return{title:s.kind==='join'?(side?'右侧记录':'左侧记录'):'分组成员',matches,empty:!matches.length,checked:pairs.length};});});
+</script>
+<template><section v-if="['join','group'].includes(step.kind)&&step.details.length" class="notice"><strong>{{step.kind==='join'?'连接匹配与补 NULL':'分组成员追踪'}}</strong><label>输出记录 <select v-model.number="selected"><option v-for="(_,i) in step.table.rows" :key="i" :value="i">第 {{i+1}} 行</option></select></label><p v-for="(item,i) in evidence" :key="i">{{item.title}}：{{item.matches.length?item.matches.map(n=>`#${n}`).join('、'):item.checked?'没有完整值匹配；外连接请结合 NULL 补齐及 ON 条件查看':'本步没有可对应的输出键'}}</p><small>编号对应下方冻结输入表。重复值可能对应多个来源候选；这里按保留字段关联，不将值相同的记录伪称为唯一物理行。</small></section></template>

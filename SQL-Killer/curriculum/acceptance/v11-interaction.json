@@ -1,0 +1,181 @@
+{
+  "status": "passed",
+  "date": "2026-10-01T14:44:49.496Z",
+  "app": "E:\\my_code\\HNU-Script\\SQL-Killer/target/release/sql-killer.exe",
+  "isolated": false,
+  "motionResults": [
+    {
+      "name": "motion-join",
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.199999999999818,
+      "rafP95Ms": 4.300000000000182,
+      "frames": 45,
+      "durationMs": 7054,
+      "renderedRows": 12
+    },
+    {
+      "name": "motion-filter-aggregate",
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.199999999998909,
+      "rafP95Ms": 4.300000000001091,
+      "frames": 66,
+      "durationMs": 10043,
+      "renderedRows": 5
+    },
+    {
+      "name": "motion-algebra",
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.19999999999709,
+      "rafP95Ms": 4.299999999999272,
+      "frames": 47,
+      "durationMs": 6960,
+      "renderedRows": 10
+    },
+    {
+      "name": "motion-transactions",
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.19999999999709,
+      "rafP95Ms": 4.30000000000291,
+      "frames": 49,
+      "durationMs": 6928,
+      "renderedRows": 0
+    },
+    {
+      "name": "motion-exercise",
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.19999999999709,
+      "rafP95Ms": 4.30000000000291,
+      "frames": 46,
+      "durationMs": 7069,
+      "renderedRows": 10
+    },
+    {
+      "name": "motion-10000",
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.19999999999709,
+      "rafP95Ms": 4.30000000000291,
+      "frames": 47,
+      "durationMs": 7020,
+      "renderedRows": 36
+    }
+  ],
+  "scaleMode": "WebView2 CDP device-metrics emulation",
+  "metrics": {
+    "devicePixelRatio": 1.0000000298023224,
+    "width": 1500,
+    "height": 960,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0"
+  },
+  "captures": [
+    {
+      "file": "01-workbench.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "02-trace.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-join.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-filter-aggregate.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-dark.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "03-algebra.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-algebra.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "04-transactions.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-transactions.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "05-exercises.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-exercise.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-10000.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "06-unicode.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    }
+  ]
+}

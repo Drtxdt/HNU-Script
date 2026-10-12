@@ -1,0 +1,93 @@
+   Compiling sql-killer-core v1.0.0 (E:\my_code\HNU-Script\SQL-Killer\core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.37s
+     Running unittests src\lib.rs (target\debug\deps\sql_killer_core-e90bcbbb7a002ae8.exe)
+
+running 43 tests
+test language::tests::unicode_positions ... ok
+test exercises::tests::bag_null_precision ... ok
+test model::export_bindings_cell ... ok
+test database::tests::preserves_types_and_limit ... ok
+test algebra::export_bindings_algebranode ... ok
+test schedule::tests::blind_writes_view_not_conflict ... ok
+test schedule::tests::deadlock ... ok
+test schedule::tests::dirty_rollback ... ok
+test model::export_bindings_column ... ok
+test database::tests::execution_and_snapshot ... ok
+test schedule::tests::pasted_example_has_no_cycle ... ok
+test schedule::tests::lost_update_and_lock ... ok
+test script::tests::quoted_delimiters ... ok
+test language::tests::alias_and_cte ... ok
+test script::tests::routine ... ok
+test model::export_bindings_sourcerange ... ok
+test model::export_bindings_foreignkey ... ok
+test algebra::tests::empty_divisor ... ok
+test database::tests::foreign_key_and_attach ... ok
+test algebra::tests::sets_and_rewrite ... ok
+test model::export_bindings_completion ... ok
+test exercises::export_bindings_question ... ok
+test project::tests::roundtrip ... ok
+test project::export_bindings_document ... ok
+test schedule::export_bindings_conflict ... ok
+test schedule::export_bindings_operation ... ok
+test exercises::tests::wrong_and_equivalent ... ok
+test schedule::export_bindings_schedulestep ... ok
+test model::export_bindings_table ... ok
+test model::export_bindings_diagnostic ... ok
+test model::export_bindings_relation ... ok
+test schedule::export_bindings_scheduleanalysis ... ok
+test model::export_bindings_analysis ... ok
+test exercises::export_bindings_grade ... ok
+test model::export_bindings_tracestep ... ok
+test model::export_bindings_statementresult ... ok
+test model::export_bindings_execution ... ok
+test model::export_bindings_schema ... ok
+test schedule::export_bindings_simulation ... ok
+test project::export_bindings_workspace ... ok
+test algebra::export_bindings_algebraresult ... ok
+test model::export_bindings_trace ... ok
+test exercises::tests::references_pass ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests\algebra_properties.rs (target\debug\deps\algebra_properties-0f2c122695b201e5.exe)
+
+running 1 test
+test selection_pushdown_preserves_bag_to_set_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests\mysql_integration.rs (target\debug\deps\mysql_integration-a6fa1b32a354b22f.exe)
+
+running 1 test
+test real_mysql_adapter_and_two_sessions ... ignored, requires tools/mysql-qa.ps1 isolated server on port 13367
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\query_semantics.rs (target\debug\deps\query_semantics-fac468884a2b231c.exe)
+
+running 2 tests
+test unsupported_trace_never_fakes_a_complete_result ... ok
+test logical_trace_matches_native_edge_cases ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\reliability.rs (target\debug\deps\reliability-910c9568650d539c.exe)
+
+running 8 tests
+test decimal_65_digits_stays_exact ... ok
+test predicate_lock_blocks_moving_out_of_range ... ok
+test queued_transaction_evaluates_only_after_its_read ... ok
+test unicode_error_location_is_utf16 ... ok
+test cancellation_and_limits_are_not_results ... ok
+test active_transaction_snapshot_keeps_uncommitted_changes_without_committing ... ok
+test algebra_rename_and_domains ... ok
+test corrupted_project_reports_error ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests sql_killer_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

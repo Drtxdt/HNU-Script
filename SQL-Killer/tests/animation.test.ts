@@ -1,0 +1,11 @@
+import {describe,expect,it} from 'vitest';
+import {PlaybackClock,framesFor} from '../src/animation/timeline';import type {Trace} from '../src/api';
+describe('deterministic teaching clock',()=>{
+ it('freezes a partial event and resumes without jumping',()=>{const c=new PlaybackClock(3);c.play();c.tick(0);c.tick(100);c.tick(200);expect(c.progress).toBeCloseTo(.2);c.pause();c.tick(5000);expect(c.progress).toBeCloseTo(.2);c.play();c.tick(6000);c.tick(6100);expect(c.progress).toBeCloseTo(.3)});
+ it('speed changes preserve position and completion stops the clock',()=>{const c=new PlaybackClock(2);c.speed=4;c.play();for(let t=0;t<=500;t+=50)c.tick(t);expect(c.index).toBe(1);expect(c.progress).toBe(1);expect(c.playing).toBe(false)});
+ it('arbitrary seeks restore identical cursors and clamp limits',()=>{const a=new PlaybackClock(100),b=new PlaybackClock(100);for(let i=0;i<1000;i++){const n=(i*37)%100;a.seek(n,.75);b.seek(99);b.seek(n,.75);expect([a.index,a.progress]).toEqual([b.index,b.progress]);}a.seek(1000);expect(a.index).toBe(99)});
+ it('sampling preserves event ordering, batch counts and important cases',()=>{const events=Array.from({length:10000},(_,i)=>({id:`s0:e${i}`,step:0,kind:i===9998?'drop':'source',message:'row',sources:[],targets:[{table:'s0',index:i}],certainty:'exact',truth:i===9998?'UNKNOWN':null,columns:[]}));const trace:Trace={source:'SELECT 1',status:'completed',message:'',snapshot:'',verified:true,result:{columns:[],rows:[],truncated:false},steps:[{id:0,kind:'source',title:'rows',explanation:'',sql:'',table:{columns:[],rows:[],truncated:false},parents:[],details:[],events,source_range:null}]};const frames=framesFor(trace,'sample');expect(frames.filter(f=>!f.batch)).toHaveLength(20);expect(frames.reduce((n,f)=>n+(f.batch??1),0)).toBe(10000);expect(frames.some(f=>f.truth==='UNKNOWN'&&!f.batch)).toBe(true);expect(frames.length).toBeLessThan(42);expect(framesFor(trace,'full')).toHaveLength(10000);expect(events[1].id).toBe('s0:e1')});
+});
+
+import {cycleEdges} from '../src/animation/timeline';
+it('marks the complete observed wait cycle but excludes incoming tails',()=>{expect(cycleEdges([{source:'T0',target:'T1'},{source:'T1',target:'T2'},{source:'T2',target:'T3'},{source:'T3',target:'T1'}])).toEqual(['T1:T2','T2:T3','T3:T1']);});

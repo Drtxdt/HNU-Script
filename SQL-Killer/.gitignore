@@ -1,0 +1,9 @@
+node_modules/
+release/
+target/
+dist/
+build/
+src-tauri/gen/
+src-tauri/resources/WebView2/
+*.log
+test-results/

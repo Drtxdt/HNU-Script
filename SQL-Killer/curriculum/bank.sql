@@ -1,0 +1,10 @@
+CREATE TABLE Branch(Bno TEXT PRIMARY KEY,name TEXT NOT NULL,city TEXT);
+CREATE TABLE Customer(Cno TEXT PRIMARY KEY,name TEXT NOT NULL,city TEXT);
+CREATE TABLE Account(Ano TEXT PRIMARY KEY,Cno TEXT REFERENCES Customer(Cno),Bno TEXT REFERENCES Branch(Bno),balance INTEGER CHECK(balance>=0));
+CREATE TABLE Deposit(Dno TEXT PRIMARY KEY,Ano TEXT REFERENCES Account(Ano),amount INTEGER CHECK(amount>0));
+CREATE TABLE Borrow(Lno TEXT PRIMARY KEY,Cno TEXT REFERENCES Customer(Cno),Bno TEXT REFERENCES Branch(Bno),amount INTEGER CHECK(amount>0));
+INSERT INTO Branch VALUES('B1','岳麓支行','长沙'),('B2','东湖支行','武汉');
+INSERT INTO Customer VALUES('C1','小明','长沙'),('C2','小红','武汉');
+INSERT INTO Account VALUES('A','C1','B1',300),('B','C2','B2',300);
+INSERT INTO Deposit VALUES('D1','A',100),('D2','B',200);
+INSERT INTO Borrow VALUES('L1','C1','B1',500);

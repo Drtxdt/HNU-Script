@@ -1,0 +1,21 @@
+[package]
+name = "sql-killer-core"
+version = "1.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.37", features = ["bundled", "backup", "serialize", "hooks", "functions", "column_decltype"] }
+sqlparser = { version = "0.63", features = ["visitor"] }
+mysql_async = { version = "0.36", default-features = false, features = ["minimal-rust", "rustls-tls", "ring"] }
+tokio = { version = "1", features = ["rt-multi-thread", "time", "sync", "macros"] }
+rust_decimal = "1"
+base64 = "0.22"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+tempfile = "3"
+ts-rs = { version = "11", features = ["serde-compat", "serde-json-impl"] }
+rand = "0.9"
+
+[dev-dependencies]
+proptest = "1"

@@ -1,0 +1,14 @@
+SQL-Killer uses unmodified ELK.js 0.11.1 under EPL-2.0.
+Copyright and license: see elkjs-0.11.1/LICENSE.md and upstream source headers.
+Corresponding source and build instructions:
+https://github.com/kieler/elkjs/tree/572e73323791d05f09b0815ff639af2b67f202ab
+https://github.com/eclipse-elk/elk
+Published version (including unminified JavaScript):
+https://registry.npmjs.org/elkjs/-/elkjs-0.11.1.tgz
+
+INDEX.json includes versioned source links for Rust and npm dependencies.
+The index also lists build/test and non-Windows packages that are not linked
+into the Windows application. Their inclusion is attribution metadata, not
+a claim that their binaries are redistributed. Original copyright notices
+and license texts are retained where available in the package or its exact
+upstream source revision. WebView2 has its own Microsoft terms and credits.

@@ -1,0 +1,1 @@
+SQL-Killer uses MIT-licensed project code. Dependency license texts retain their original attribution. INDEX.json records resolved packages including build/test dependencies. SQLite is public domain. Microsoft WebView2 is a separately licensed redistributed runtime; its embedded credits and Microsoft terms apply. No course PDFs are redistributed.

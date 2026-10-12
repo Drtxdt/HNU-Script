@@ -1,0 +1,10 @@
+CREATE TABLE Department(Dno TEXT PRIMARY KEY,Dname TEXT NOT NULL);
+CREATE TABLE Student(Sno TEXT PRIMARY KEY,Sname TEXT NOT NULL,Sgender TEXT CHECK(Sgender IN ('男','女')),Sage INTEGER CHECK(Sage BETWEEN 0 AND 150),Sdept TEXT REFERENCES Department(Dno));
+CREATE TABLE Course(Cno TEXT PRIMARY KEY,Cname TEXT NOT NULL,Cpno TEXT REFERENCES Course(Cno),Ccredit INTEGER CHECK(Ccredit>0));
+CREATE TABLE SC(Sno TEXT REFERENCES Student(Sno),Cno TEXT REFERENCES Course(Cno),Grade REAL CHECK(Grade BETWEEN 0 AND 100),PRIMARY KEY(Sno,Cno));
+CREATE TABLE Teacher(Tno TEXT PRIMARY KEY,Tname TEXT NOT NULL,Dno TEXT REFERENCES Department(Dno));
+INSERT INTO Department VALUES('CS','计算机'),('MA','数学'),('IS','信息');
+INSERT INTO Student VALUES('2021310721','李博','男',17,'CS'),('2021310722','赵宇','男',19,'CS'),('2021310723','张敏','女',18,'CS'),('2021310724','王勇','男',18,'MA'),('2021310725','刘佳','女',17,'MA');
+INSERT INTO Course VALUES('6','程序设计',NULL,3),('4','高等数学',NULL,4),('2','数据结构与算法','6',4),('1','数据库','2',4),('3','操作系统','2',3),('5','软件工程','6',2),('7','数值分析','4',2);
+INSERT INTO SC VALUES('2021310721','5',98),('2021310722','1',87),('2021310723','1',92),('2021310723','5',76),('2021310724','7',84),('2021310725','4',95);
+INSERT INTO Teacher VALUES('T1','陈老师','CS'),('T2','周老师','MA');

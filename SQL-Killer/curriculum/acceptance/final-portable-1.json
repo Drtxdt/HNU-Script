@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "date": "2026-09-30T12:21:39.260Z",
+  "app": "E:\\my_code\\HNU-Script\\SQL-Killer\\build\\qa\\中文 路径验收\\SQL-Killer-1.0.0-Windows-x64\\SQL-Killer.exe",
+  "isolated": true,
+  "scaleMode": "WebView2 CDP device-metrics emulation",
+  "metrics": {
+    "devicePixelRatio": 1.0000000298023224,
+    "width": 1500,
+    "height": 960,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0"
+  },
+  "captures": [
+    {
+      "file": "01-workbench.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "02-trace.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "03-algebra.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "04-transactions.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "05-exercises.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "06-unicode.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    }
+  ]
+}

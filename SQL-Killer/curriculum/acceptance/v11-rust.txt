@@ -1,0 +1,111 @@
+   Compiling sql-killer-core v1.1.0 (E:\my_code\HNU-Script\SQL-Killer\core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.69s
+     Running unittests src\lib.rs (target\debug\deps\sql_killer_core-bad81f9a3ba11d88.exe)
+
+running 46 tests
+test exercises::tests::bag_null_precision ... ok
+test database::tests::preserves_types_and_limit ... ok
+test algebra::export_bindings_algebranode ... ok
+test language::tests::unicode_positions ... ok
+test algebra::tests::empty_divisor ... ok
+test animation::export_bindings_statechange ... ok
+test database::tests::foreign_key_and_attach ... ok
+test database::tests::execution_and_snapshot ... ok
+test exercises::export_bindings_question ... ok
+test schedule::tests::blind_writes_view_not_conflict ... ok
+test schedule::tests::dirty_rollback ... ok
+test schedule::tests::deadlock ... ok
+test language::tests::alias_and_cte ... ok
+test schedule::tests::pasted_example_has_no_cycle ... ok
+test animation::export_bindings_rowref ... ok
+test script::tests::quoted_delimiters ... ok
+test script::tests::routine ... ok
+test schedule::tests::lost_update_and_lock ... ok
+test algebra::tests::sets_and_rewrite ... ok
+test model::export_bindings_completion ... ok
+test model::export_bindings_diagnostic ... ok
+test model::export_bindings_foreignkey ... ok
+test exercises::tests::wrong_and_equivalent ... ok
+test model::export_bindings_sourcerange ... ok
+test project::export_bindings_document ... ok
+test project::tests::roundtrip ... ok
+test model::export_bindings_cell ... ok
+test schedule::export_bindings_conflict ... ok
+test schedule::export_bindings_operation ... ok
+test model::export_bindings_column ... ok
+test model::export_bindings_analysis ... ok
+test animation::export_bindings_animationevent ... ok
+test schedule::export_bindings_simulation ... ok
+test model::export_bindings_relation ... ok
+test model::export_bindings_table ... ok
+test exercises::export_bindings_grade ... ok
+test schedule::export_bindings_scheduleanalysis ... ok
+test schedule::export_bindings_schedulestep ... ok
+test model::export_bindings_schema ... ok
+test project::export_bindings_workspace ... ok
+test model::export_bindings_statementresult ... ok
+test model::export_bindings_execution ... ok
+test model::export_bindings_tracestep ... ok
+test algebra::export_bindings_algebraresult ... ok
+test model::export_bindings_trace ... ok
+test exercises::tests::references_pass ... ok
+
+test result: ok. 46 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests\algebra_properties.rs (target\debug\deps\algebra_properties-551ba893c9e1b180.exe)
+
+running 1 test
+test selection_pushdown_preserves_bag_to_set_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests\animation.rs (target\debug\deps\animation-8b1b2c70ce6c8c3c.exe)
+
+running 9 tests
+test schedule_events_preserve_original_lines_and_real_changes ... ok
+test engine_truth_and_duplicate_occurrences ... ok
+test join_has_two_parents_and_ambiguous_sources_are_never_exact ... ok
+test native_running_counts_and_having_truth ... ok
+test division_checks_missing_pairs_and_empty_divisor ... ok
+test native_groups_null_and_case_insensitive_keys ... ok
+test ast_ranges_distinguish_repeated_clauses_and_unicode ... ok
+test hidden_exercise_failures_do_not_expose_answers ... ok
+test empty_aggregate_and_algebra_have_events ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\mysql_integration.rs (target\debug\deps\mysql_integration-74ef4b4f7f9f9070.exe)
+
+running 1 test
+test real_mysql_adapter_and_two_sessions ... ignored, requires tools/mysql-qa.ps1 isolated server on port 13367
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\query_semantics.rs (target\debug\deps\query_semantics-a16158f9677c70a4.exe)
+
+running 2 tests
+test unsupported_trace_never_fakes_a_complete_result ... ok
+test logical_trace_matches_native_edge_cases ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\reliability.rs (target\debug\deps\reliability-f8a98a53843854ee.exe)
+
+running 8 tests
+test decimal_65_digits_stays_exact ... ok
+test queued_transaction_evaluates_only_after_its_read ... ok
+test unicode_error_location_is_utf16 ... ok
+test predicate_lock_blocks_moving_out_of_range ... ok
+test algebra_rename_and_domains ... ok
+test active_transaction_snapshot_keeps_uncommitted_changes_without_committing ... ok
+test cancellation_and_limits_are_not_results ... ok
+test corrupted_project_reports_error ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests sql_killer_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,207 @@
+{
+  "status": "passed",
+  "date": "2026-10-01T15:06:13.178Z",
+  "app": "E:\\my_code\\HNU-Script\\SQL-Killer/target/release/sql-killer.exe",
+  "isolated": false,
+  "raceChecks": true,
+  "runtimeExecutable": "E:\\my_code\\HNU-Script\\SQL-Killer\\target\\release\\WebView2\\msedgewebview2.exe",
+  "motionResults": [
+    {
+      "name": "motion-join",
+      "recording": {
+        "capturedFrames": 421,
+        "capturedSeconds": 6.5810699462890625
+      },
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.199999999999818,
+      "rafP95Ms": 8.400000000000091,
+      "frames": 37,
+      "durationMs": 7868,
+      "renderedRows": 12
+    },
+    {
+      "name": "motion-filter-aggregate",
+      "recording": {
+        "capturedFrames": 597,
+        "capturedSeconds": 9.488314867019653
+      },
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.200000000000728,
+      "rafP95Ms": 7,
+      "frames": 51,
+      "durationMs": 11133,
+      "renderedRows": 4
+    },
+    {
+      "name": "motion-algebra",
+      "recording": {
+        "capturedFrames": 425,
+        "capturedSeconds": 6.485424995422363
+      },
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.400000000001455,
+      "rafP95Ms": 8.400000000001455,
+      "frames": 40,
+      "durationMs": 7713,
+      "renderedRows": 10
+    },
+    {
+      "name": "motion-transactions",
+      "recording": {
+        "capturedFrames": 328,
+        "capturedSeconds": 6.404101133346558
+      },
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.299999999995634,
+      "rafP95Ms": 8.400000000001455,
+      "frames": 46,
+      "durationMs": 7303,
+      "renderedRows": 0
+    },
+    {
+      "name": "motion-exercise",
+      "recording": {
+        "capturedFrames": 455,
+        "capturedSeconds": 6.575285911560059
+      },
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.5,
+      "rafP95Ms": 8.400000000001455,
+      "frames": 44,
+      "durationMs": 7812,
+      "renderedRows": 10
+    },
+    {
+      "name": "motion-10000",
+      "recording": {
+        "capturedFrames": 476,
+        "capturedSeconds": 6.538790941238403
+      },
+      "pauseFrozen": true,
+      "layoutStable": true,
+      "rafMedianMs": 4.30000000000291,
+      "rafP95Ms": 8.400000000008731,
+      "frames": 44,
+      "durationMs": 7703,
+      "renderedRows": 36
+    }
+  ],
+  "scaleMode": "WebView2 CDP device-metrics emulation",
+  "metrics": {
+    "devicePixelRatio": 1.0000000298023224,
+    "width": 1500,
+    "height": 960,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0"
+  },
+  "captures": [
+    {
+      "file": "01-workbench.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "02-trace.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-join.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-filter-aggregate.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-dark.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "03-algebra.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-algebra.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "04-transactions.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-transactions.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "05-exercises.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-exercise.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "motion-10000.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    },
+    {
+      "file": "06-unicode.png",
+      "devicePixelRatio": 1.0000000298023224,
+      "width": 1500,
+      "height": 960,
+      "pixelWidth": 1500,
+      "pixelHeight": 960
+    }
+  ]
+}

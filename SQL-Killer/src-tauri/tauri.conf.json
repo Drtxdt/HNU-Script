@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "SQL-Killer",
+  "version": "1.1.0",
+  "identifier": "cn.hnu.sql-killer",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "SQL-Killer · 数据库学习实验室",
+        "width": 1500,
+        "height": 960,
+        "minWidth": 960,
+        "minHeight": 640
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data: blob:; font-src 'self' data:; connect-src ipc: http://ipc.localhost; worker-src 'self' blob:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "shortDescription": "离线 SQL 与数据库原理学习实验室",
+    "category": "Education",
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "SimpChinese",
+          "English"
+        ],
+        "compression": "lzma"
+      },
+      "webviewInstallMode": {
+        "type": "skip"
+      }
+    },
+    "resources": {
+      "../README.md": "README.md",
+      "../curriculum/": "curriculum/",
+      "../build/runtime-expanded/Microsoft.WebView2.FixedVersionRuntime.154.0.4258.48.x64/": "WebView2/",
+      "../licenses/": "licenses/",
+      "../VALIDATION.md": "VALIDATION.md",
+      "../examples/": "examples/",
+      "../LICENSE": "LICENSE",
+      "../runtime.lock.json": "runtime.lock.json"
+    }
+  }
+}

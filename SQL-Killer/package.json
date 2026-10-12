@@ -1,0 +1,40 @@
+{
+  "name": "sql-killer",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vue-tsc --noEmit && vite build",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src tools tests",
+    "tauri": "tauri",
+    "test:core": "cargo test -p sql-killer-core",
+    "test:e2e": "node tools/e2e.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.12.0",
+    "@tauri-apps/plugin-dialog": "2.8.0",
+    "vue": "3.5.43",
+    "pinia": "3.0.4",
+    "monaco-editor": "0.55.1",
+    "sql-formatter": "15.9.0",
+    "elkjs": "0.11.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.0",
+    "@vitejs/plugin-vue": "6.0.9",
+    "typescript": "5.9.3",
+    "vite": "7.3.6",
+    "vue-tsc": "3.3.11",
+    "vitest": "4.1.11",
+    "eslint": "9.39.5",
+    "typescript-eslint": "8.71.0",
+    "eslint-plugin-vue": "10.11.1",
+    "@eslint/js": "9.39.5",
+    "globals": "16.5.0",
+    "webdriverio": "9.32.0"
+  }
+}
