@@ -16,8 +16,11 @@
 | code.ahk                 | 超星在线代码框粘贴工具                              |
 | Karnaugh-map-killer.py   | 数电的一键卡诺图绘制工具，并可以生成答案            |
 | Compiler-Lexer-Killer | 编译原理词法分析实验室：正则、AST、NFA、DFA 和字符串模拟 |
+| [SQL-Killer](SQL-Killer/README.md) | Tauri + Rust 离线数据库学习实验室：SQL、逐行动画、关系代数、事务与练习 |
 
 ## 环境要求
+
+**SQL-Killer 独立要求**：Windows 10 22H2／Windows 11 x64；便携版携带 SQLite 和固定 WebView2，无需 AutoHotkey、Python 或 Node。MySQL 功能需自行提供 MySQL 服务。详见其 [说明](SQL-Killer/README.md) 和 [验收记录](SQL-Killer/VALIDATION.md)。其他工具的要求保留如下。
 
 要运行本项目，你需要满足以下条件
 
@@ -92,8 +95,8 @@ python Karnaugh-map-killer.py
 
 ### Compiler-Lexer-Killer
 
-编译原理词法分析可视化工具，支持课件式命名定义、Thompson NFA、DFA 子集构造、转换表及逐字符模拟，可单步、后退和自动播放。
+编译原理词法分析可视化工具。2.0 支持命名定义、Thompson／课件简化 NFA、DFA 子集构造与最小化、最长匹配与规则优先级、自由画图、练习判题、工程保存和 SVG／报告导出，可单步、后退和自动播放。
 
 本工具独立要求 **Windows 10（1809 起）/ Windows 11 x64**。便携包解压后运行 `Compiler-Lexer-Killer.exe`，无需安装 Python 或 Graphviz。
 
-源码运行、输入语法、CLI 和构建方式见 [工具说明](Compiler-Lexer-Killer/README.md)。
+源码运行要求 Python 3.11+。输入语法、CLI、示例工程和构建方式见 [工具说明](Compiler-Lexer-Killer/README.md)，实际验证范围见 [验收记录](Compiler-Lexer-Killer/VALIDATION.md)。
