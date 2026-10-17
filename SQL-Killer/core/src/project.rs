@@ -37,13 +37,13 @@ pub struct Workspace {
 }
 impl Default for Workspace {
     fn default() -> Self {
-        Self{format_version:2,learning:Default::default(),case_progress:Default::default(),documents:vec![Document{id:"main".into(),title:"课堂查询.sql".into(),text:"SELECT S.Sname, C.Cno, C.Grade\nFROM Student S\nLEFT JOIN SC C ON S.Sno = C.Sno\nORDER BY S.Sno, C.Cno;".into()}],active_document:"main".into(),fixture:"student".into(),algebra:"project{Sno,Sname}(select{Sage >= 18}(Student))".into(),schedule:"T1 read A\nT2 read A\nT1 set A A-100\nT1 write A\nT1 commit\nT2 set A A-200\nT2 write A\nT2 commit".into(),initial:BTreeMap::from([("A".into(),300),("B".into(),300)]),exercise_answers:BTreeMap::new(),exercise_seed:0,progress:BTreeMap::new(),mistakes:vec![],view:serde_json::json!({"theme":"system","page":"learn"}),mysql_profile:serde_json::Value::Null}
+        Self{format_version:3,learning:Default::default(),case_progress:Default::default(),documents:vec![Document{id:"main".into(),title:"课堂查询.sql".into(),text:"SELECT S.Sname, C.Cno, C.Grade\nFROM Student S\nLEFT JOIN SC C ON S.Sno = C.Sno\nORDER BY S.Sno, C.Cno;".into()}],active_document:"main".into(),fixture:"student".into(),algebra:"project{Sno,Sname}(select{Sage >= 18}(Student))".into(),schedule:"T1 read A\nT2 read A\nT1 set A A-100\nT1 write A\nT1 commit\nT2 set A A-200\nT2 write A\nT2 commit".into(),initial:BTreeMap::from([("A".into(),300),("B".into(),300)]),exercise_answers:BTreeMap::new(),exercise_seed:0,progress:BTreeMap::new(),mistakes:vec![],view:serde_json::json!({"theme":"system","page":"learn"}),mysql_profile:serde_json::Value::Null}
     }
 }
 pub fn validate(p: &Workspace) -> Result<(), String> {
-    if ![1, 2].contains(&p.format_version) {
+    if ![1, 2, 3].contains(&p.format_version) {
         return Err(format!(
-            "不支持工程版本 {}；当前支持版本 1、2",
+            "不支持工程版本 {}；当前支持版本 1、2、3",
             p.format_version
         ));
     }
@@ -66,6 +66,7 @@ pub fn validate(p: &Workspace) -> Result<(), String> {
         return Err("活动文档不存在".into());
     }
     crate::cases::validate_evidence(&p.case_progress.evidence)?;
+    crate::case_experience::validate_board(&p.case_progress)?;
     if serde_json::to_vec(p).map_err(failure)?.len() > 8 * 1024 * 1024 {
         return Err("工程元数据超过 8 MiB".into());
     }
@@ -110,10 +111,11 @@ pub fn save(path: &Path, workspace: &Workspace, c: &rusqlite::Connection) -> Res
         return Err("教学工程数据库超过 100 MiB".into());
     }
     let mut p = workspace.clone();
-    p.format_version = 2;
+    p.format_version = 3;
     if let Some(view) = p.view.as_object_mut() {
         view.remove("migrated_from");
     }
+    crate::case_experience::migrate(&mut p.case_progress);
     scrub(&mut p.mysql_profile);
     let data = serde_json::to_vec_pretty(&p).map_err(failure)?;
     let mut target = tempfile::NamedTempFile::new_in(parent).map_err(failure)?;
@@ -154,17 +156,19 @@ pub fn load(path: &Path, directory: &Path) -> Result<(Workspace, rusqlite::Conne
     let mut p: Workspace =
         serde_json::from_slice(&manifest).map_err(|e| format!("工程元数据损坏：{e}"))?;
     validate(&p)?;
-    if p.format_version == 1 {
-        p.format_version = 2;
+    if p.format_version < 3 {
+        let migrated_from = p.format_version;
+        p.format_version = 3;
         if !p.view.is_object() {
             let legacy = std::mem::take(&mut p.view);
             p.view = serde_json::json!({"legacy_view":legacy,"page":"ide"});
         }
         if let Some(view) = p.view.as_object_mut() {
             view.entry("page").or_insert(serde_json::json!("ide"));
-            view.insert("migrated_from".into(), serde_json::json!(1));
+            view.insert("migrated_from".into(), serde_json::json!(migrated_from));
         }
     }
+    crate::case_experience::migrate(&mut p.case_progress);
     scrub(&mut p.mysql_profile);
     let db = {
         let mut f = zip.by_name("database.sqlite").map_err(failure)?;

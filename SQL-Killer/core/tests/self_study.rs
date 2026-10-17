@@ -118,7 +118,7 @@ fn version_one_project_migrates_without_losing_answers_or_database() {
     out.write_all(&data).unwrap();
     out.finish().unwrap();
     let (restored, db) = project::load(&path, dir.path()).unwrap();
-    assert_eq!(restored.format_version, 2);
+    assert_eq!(restored.format_version, 3);
     assert_eq!(restored.exercise_seed, 3);
     assert_eq!(restored.exercise_answers, p.exercise_answers);
     assert_eq!(restored.view["migrated_from"], 1);

@@ -1,5 +1,6 @@
 pub mod algebra;
 pub mod animation;
+pub mod case_experience;
 pub mod cases;
 pub mod cases_mysql;
 pub mod database;

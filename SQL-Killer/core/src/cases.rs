@@ -46,6 +46,16 @@ pub struct EvidenceSnapshot {
 #[derive(Debug, Clone, Serialize, Deserialize, Default, TS)]
 #[ts(export, export_to = "../../src/generated/")]
 pub struct CaseProgress {
+    #[serde(default)]
+    pub mode: String,
+    #[serde(default)]
+    pub board: crate::case_experience::EvidenceBoard,
+    #[serde(default)]
+    pub closure_revision: u32,
+    #[serde(default)]
+    pub round: u32,
+    #[serde(default)]
+    pub history: Vec<crate::case_experience::CaseConclusion>,
     pub version: u32,
     pub seed: u64,
     pub task: String,
@@ -93,13 +103,13 @@ pub struct QueryComparison {
 }
 pub fn spec() -> CaseSpec {
     let tasks = [
-        ("capacity","找出超额课程","返回课程号 Cno、capacity、成功选课人数 actual。只统计 status='success'；找出人数超过容量的课程。","SELECT C.Cno,C.capacity,COUNT(*) AS actual\nFROM CaseCourse C JOIN Enrollment E ON E.Cno=C.Cno\nWHERE E.status='success'\nGROUP BY C.Cno,C.capacity\nHAVING ...;"),
-        ("requests","定位异常请求","找出日志中读到 capacity-1 的请求，返回 request_id、Sno、Sname。每个请求只出现一次，不要求顺序。","SELECT DISTINCT E.request_id,S.Sno,S.Sname\nFROM Enrollment E JOIN CaseStudent S ON ...\nJOIN RequestLog L ON ...\nJOIN CaseCourse C ON ...\nWHERE L.phase='read' AND ...;"),
-        ("timeline","重建事件过程","返回 RequestLog 的 event_seq、request_id、phase、observed_count，按 event_seq 排序。区分读取、覆盖写入与提交。","SELECT event_seq,request_id,phase,observed_count\nFROM RequestLog\nORDER BY ...;"),
-        ("reproduce","复现并发故障","回放调度后填写：实际成功人数、计数器值及故障根因。日志中的两笔请求都读取了同一个旧值。",""),
-        ("repair","验证修复","比较原方案、单独唯一约束、课程行锁、原子条件更新。选择通过所有模型场景的策略，并将证据关联到根因。",""),
+        ("capacity","核对选课人数","找出成功选课人数超过容量的课程。输出 Cno、capacity、actual；只统计成功记录。","SELECT C.Cno,C.capacity,COUNT(*) AS actual\nFROM CaseCourse C JOIN Enrollment E ON E.Cno=C.Cno\nWHERE E.status='success'\nGROUP BY C.Cno,C.capacity\nHAVING ...;"),
+        ("requests","核实异常请求","核实异常课程中有日志记录的成功请求及学生身份，同名不等于同一个人。输出 request_id、Sno、Sname，每个请求一次。","SELECT DISTINCT E.request_id,S.Sno,S.Sname\nFROM Enrollment E JOIN CaseStudent S ON ...\nJOIN RequestLog L ON ...\nWHERE ...;"),
+        ("timeline","重建事件顺序","按事件序号呈现请求的实际操作。输出 event_seq、request_id、phase、observed_count，按 event_seq 排序。","SELECT event_seq,request_id,phase,observed_count\nFROM RequestLog\nORDER BY ...;"),
+        ("reproduce","检验并发解释","根据已取得的证据预测并回放调度，填写实际成功人数、计数器和根因。",""),
+        ("repair","验证修复方案","比较策略在容量、计数一致性、重复请求和失败回滚下的表现，再完成解释链。",""),
     ].into_iter().map(|(id,title,prompt,starter)|CaseTask{id:id.into(),title:title.into(),prompt:prompt.into(),starter:starter.into()}).collect();
-    CaseSpec { id:ID.into(),version:VERSION,title:"选课系统里的第 41 个人".into(),briefing:"容量 40 的课程原有 39 条成功记录。两笔请求都读到 39，提交后实际有 41 人，计数器却仍为 40。请用数据和日志证明原因，并验证修复。调查数据库是独立的冻结数据，不改变自由实验沙箱。".into(),tasks }
+    CaseSpec { id:ID.into(),version:VERSION,title:"选课异常调查".into(),briefing:"教务处收到选课记录与系统显示不一致的投诉。管理员认为数据正常，请用可复核的记录给出调查结论。调查使用独立数据，不改变自由实验数据库。".into(),tasks }
 }
 pub fn check_context(id: &str, version: u32) -> Result<(), String> {
     if id != ID || version != VERSION {
@@ -204,7 +214,7 @@ pub fn query(c: &rusqlite::Connection, sql: &str, b: &Budget) -> Result<Table, S
 fn reference(task: &str) -> Result<&'static str, String> {
     Ok(match task {
     "capacity"=>"SELECT C.Cno,C.capacity,COUNT(*) actual FROM CaseCourse C JOIN Enrollment E ON E.Cno=C.Cno WHERE E.status='success' GROUP BY C.Cno,C.capacity HAVING COUNT(*)>C.capacity",
-    "requests"=>"SELECT DISTINCT E.request_id,S.Sno,S.Sname FROM Enrollment E JOIN CaseStudent S ON S.Sno=E.Sno JOIN RequestLog L ON L.request_id=E.request_id JOIN CaseCourse C ON C.Cno=E.Cno WHERE L.phase='read' AND L.observed_count=C.capacity-1",
+    "requests"=>"SELECT DISTINCT E.request_id,S.Sno,S.Sname FROM Enrollment E JOIN CaseStudent S ON S.Sno=E.Sno JOIN RequestLog L ON L.request_id=E.request_id JOIN CaseCourse C ON C.Cno=E.Cno WHERE E.status='success' AND E.Cno IN (SELECT E2.Cno FROM Enrollment E2 JOIN CaseCourse C2 ON C2.Cno=E2.Cno WHERE E2.status='success' GROUP BY E2.Cno,C2.capacity HAVING COUNT(*)>C2.capacity)",
     "timeline"=>"SELECT event_seq,request_id,phase,observed_count FROM RequestLog ORDER BY event_seq",
     _=>return Err("此任务请使用调度观察或修复验证".into())})
 }
@@ -438,64 +448,15 @@ pub fn validate_evidence(cards: &[EvidenceSnapshot]) -> Result<(), String> {
     Ok(())
 }
 pub fn close_case(p: &CaseProgress, b: &Budget) -> Result<CaseGrade, String> {
-    check_context(ID, p.version)?;
-    validate_evidence(&p.evidence)?;
-    if p.cause != "stale_read" {
-        return Err("请选择与日志一致的根因".into());
-    }
-    for task in ["capacity", "requests", "timeline", "reproduce"] {
-        if grade(
-            task,
-            p.answers.get(task).map(String::as_str).unwrap_or(""),
-            p.seed,
-            b,
-        )
-        .status
-            != "passed"
-        {
-            return Err(format!("任务 {task} 需要重新验证"));
-        }
-    }
-    if validate_repair(&p.model_strategy, b)?.status != "passed" {
-        return Err("修复模型未通过".into());
-    }
-    let c = fixture(p.seed, 0)?;
-    for task in ["capacity", "requests", "timeline"] {
-        let relevant: Vec<_> = p
-            .evidence
+    let review = crate::case_experience::review(p, b)?;
+    if !review.can_close {
+        return Err(review
+            .items
             .iter()
-            .filter(|e| e.task == task && e.case_version == VERSION && e.seed == p.seed)
-            .collect();
-        if relevant.is_empty() {
-            return Err(format!("请为任务 {task} 固定查询证据"));
-        }
-        for e in relevant {
-            if e.case_version != VERSION
-                || e.seed != p.seed
-                || e.snapshot != snapshot(p.seed)
-                || e.hypothesis != "stale_read"
-            {
-                return Err("证据版本或根因关联不匹配，请重新固定并关联".into());
-            }
-            let fresh = query(&c, &e.sql, b)?;
-            let mut available = fresh.rows.clone();
-            let subset = e.table.rows.iter().all(|row| {
-                if let Some(i) = available.iter().position(|r| r == row) {
-                    available.remove(i);
-                    true
-                } else {
-                    false
-                }
-            });
-            if fresh.truncated
-                || e.table.rows.is_empty()
-                || !subset
-                || e.table.columns != fresh.columns
-                || grade(task, &e.sql, p.seed, b).status != "passed"
-            {
-                return Err("证据与冻结数据或任务结果不一致".into());
-            }
-        }
+            .filter(|r| !r.passed)
+            .map(|r| r.title.as_str())
+            .collect::<Vec<_>>()
+            .join("；"));
     }
     Ok(CaseGrade {
         status: "passed".into(),
@@ -594,7 +555,22 @@ mod tests {
             "reproduce".into(),
             r#"{"actual":41,"counter":40,"cause":"stale_read"}"#.into(),
         );
+        p.board.relations = vec![
+            crate::case_experience::EvidenceRelation {
+                from: "capacity".into(),
+                to: "requests".into(),
+                kind: "explains".into(),
+            },
+            crate::case_experience::EvidenceRelation {
+                from: "requests".into(),
+                to: "timeline".into(),
+                kind: "explains".into(),
+            },
+        ];
         assert_eq!(close_case(&p, &Budget::default()).unwrap().status, "passed");
+        let mut disconnected = p.clone();
+        disconnected.board.relations.clear();
+        assert!(close_case(&disconnected, &Budget::default()).is_err());
         let mut bad = p.clone();
         bad.evidence[0].snapshot = "old".into();
         assert!(close_case(&bad, &Budget::default()).is_err());

@@ -71,6 +71,8 @@ async fn dispatch(
                 text(&args, "case_id"),
                 args["version"].as_u64().unwrap_or(0) as u32,
             )?;
+            let progress: sql_killer_core::cases::CaseProgress = decode(&args["progress"])?;
+            sql_killer_core::case_experience::require_task(&progress, "repair", &budget)?;
             let cfg = state
                 .configs
                 .lock()
@@ -310,20 +312,49 @@ fn sync_dispatch(
         )?),
         "case_catalog" => encode(sql_killer_core::cases::spec()),
         "case_schema" | "case_query" | "case_trace" | "case_grade" | "case_reproduction"
-        | "case_repair" | "case_close" => {
+        | "case_repair" | "case_close" | "case_context" | "case_review" => {
             use sql_killer_core::cases;
             cases::check_context(
                 text(args, "case_id"),
                 args["version"].as_u64().unwrap_or(0) as u32,
             )?;
             let seed = args["seed"].as_u64().unwrap_or(0);
+            use sql_killer_core::case_experience as experience;
+            let mut progress: cases::CaseProgress = if args["progress"].is_object() {
+                decode(&args["progress"])?
+            } else {
+                Default::default()
+            };
+            progress.seed = seed;
+            progress.version = cases::VERSION;
+            if ![
+                "case_context",
+                "case_review",
+                "case_close",
+                "case_schema",
+                "case_query",
+                "case_trace",
+            ]
+            .contains(&command)
+            {
+                let task = if command == "case_reproduction" {
+                    "reproduce"
+                } else if command == "case_repair" {
+                    "repair"
+                } else {
+                    text(args, "task")
+                };
+                experience::require_task(&progress, task, b)?;
+            }
             match command {
-                "case_schema" => encode(database::schema(&cases::fixture(seed, 0)?)?),
+                "case_context" => encode(experience::context(&progress, b)?),
+                "case_review" => encode(experience::review(&progress, b)?),
+                "case_schema" => encode(experience::context(&progress, b)?.schema),
                 "case_query" => encode(
-                    json!({"table":cases::query(&cases::fixture(seed,0)?,text(args,"sql"),b)?,"snapshot":cases::snapshot(seed)}),
+                    json!({"table":cases::query(&experience::accessible_fixture(&progress,b)?,text(args,"sql"),b)?,"snapshot":cases::snapshot(seed)}),
                 ),
                 "case_trace" => {
-                    let c = cases::fixture(seed, 0)?;
+                    let c = experience::accessible_fixture(&progress, b)?;
                     cases::query(&c, text(args, "sql"), b)?;
                     encode(trace::trace_query(&c, text(args, "sql"), b))
                 }
@@ -344,6 +375,8 @@ fn sync_dispatch(
                 text(args, "case_id"),
                 args["version"].as_u64().unwrap_or(0) as u32,
             )?;
+            let progress: sql_killer_core::cases::CaseProgress = decode(&args["progress"])?;
+            sql_killer_core::case_experience::require_task(&progress, "repair", b)?;
             encode(include_str!("../../curriculum/case-repair.mysql.sql"))
         }
         "fixture_preview" => {
