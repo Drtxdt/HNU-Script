@@ -1,0 +1,5 @@
+import type {Question} from './api';
+export const courseOrder=['relation','projection','where','null','like','count','aggregate','join','left','subquery','correlated','exists','union','except','keys','constraint','create','alter','update','delete','view','index','trigger','algebra-filter','algebra-join','rollback','recovery','isolation','snapshot','schedule','view-schedule'];
+export function orderedCourse(questions:Question[]){return questions.filter(q=>q.engine==='sqlite').sort((a,b)=>{const index=(q:Question)=>courseOrder.indexOf(q.id)<0?999:courseOrder.indexOf(q.id);return index(a)-index(b)})}
+export function nextQuestion(questions:Question[],progress:Record<string,string|undefined>,seed:number,after=''){const list=orderedCourse(questions);const n=list.findIndex(q=>q.id===after);const rotated=after?[...list.slice(n+1),...list.slice(0,n+1)]:list;return rotated.find(q=>progress[`${q.id}@${seed}`]!=='passed')??null;}
+export function resumeQuestion(questions:Question[],progress:Record<string,string|undefined>,seed:number,last=''){return orderedCourse(questions).find(q=>q.id===last&&progress[`${q.id}@${seed}`]!=='passed')??nextQuestion(questions,progress,seed);}
