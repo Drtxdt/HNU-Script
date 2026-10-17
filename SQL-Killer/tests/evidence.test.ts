@@ -1,0 +1,6 @@
+import {expect,it} from 'vitest';
+import {barRows,timelineRows,addRelation,numericCell} from '../src/evidence';
+import type {Table} from '../src/api';
+it('charts preserve zero, omit NULL and do not invent numeric text',()=>{const t={columns:['k','v'],rows:[[{kind:'text',value:'a'},{kind:'integer',value:'0'}],[{kind:'text',value:'b'},{kind:'null'}],[{kind:'text',value:'c'},{kind:'text',value:'99'}]],truncated:false} as Table;expect(barRows(t,0,1)).toEqual([{key:0,label:'a',value:0,text:'0'}]);expect(numericCell({kind:'text',value:'1'})).toBeUndefined()});
+it('timeline orders events by sequence, preserving ties rather than timestamps',()=>{const t={columns:['event_seq'],rows:[[{kind:'integer',value:'12'}],[{kind:'integer',value:'2'}],[{kind:'integer',value:'2'}]],truncated:false} as Table;expect(timelineRows(t).map(r=>r.index)).toEqual([1,2,0])});
+it('relations distinguish explanation from ordinary associations and reject duplicates',()=>{const b={cards:{},relations:[],zoom:1,x:0,y:0};expect(addRelation(b,'a','a','explains')).toBe(false);expect(addRelation(b,'a','b','explains')).toBe(true);expect(addRelation(b,'a','b','explains')).toBe(false);expect(addRelation(b,'a','b','related')).toBe(true)});
