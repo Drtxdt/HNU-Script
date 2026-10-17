@@ -97,6 +97,8 @@ pub struct RepairValidation {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../../src/generated/")]
 pub struct QueryComparison {
+    pub steps: Vec<crate::comparison::ComparisonStep>,
+    pub first_difference: Option<usize>,
     pub left: Trace,
     pub right: Trace,
     pub diff: TableDiff,
@@ -482,7 +484,18 @@ pub fn compare_queries(
         ));
     }
     let diff = compare_tables(&left.result, &right.result, false, false);
-    Ok(QueryComparison { left, right, diff })
+    let steps =
+        crate::comparison::align(&left, &right, left.source.as_str(), right.source.as_str());
+    let first_difference = steps
+        .iter()
+        .position(|s| s.diff.as_ref().is_some_and(|d| !d.equal));
+    Ok(QueryComparison {
+        left,
+        right,
+        diff,
+        steps,
+        first_difference,
+    })
 }
 
 #[cfg(test)]

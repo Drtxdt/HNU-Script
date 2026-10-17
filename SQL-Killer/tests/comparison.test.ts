@@ -1,0 +1,3 @@
+import {expect,it} from 'vitest';import {comparisonExamples} from '../src/comparisonExamples';import type {Schema} from '../src/api';
+it('comparison examples use current schema and quote identifiers',()=>{const s={relations:[{name:'Hotel "One',columns:[{name:'room id'}]}]} as Schema;const pair=comparisonExamples(s);expect(pair[0]).toContain('"Hotel ""One"');expect(pair[0]).toContain('"room id"');expect(pair[0]).not.toContain('Student');expect(pair[1]).toContain('DISTINCT')});
+it('empty schemas do not suggest nonexistent tables',()=>expect(comparisonExamples({relations:[]} as unknown as Schema)).toEqual(['','']));

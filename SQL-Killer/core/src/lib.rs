@@ -3,6 +3,7 @@ pub mod animation;
 pub mod case_experience;
 pub mod cases;
 pub mod cases_mysql;
+pub mod comparison;
 pub mod database;
 pub mod exercises;
 pub mod language;
