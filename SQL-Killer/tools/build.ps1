@@ -2,6 +2,7 @@ param([switch]$SkipChecks)
 $ErrorActionPreference='Stop'
 $projectRoot=Split-Path $PSScriptRoot -Parent
 Set-Location $projectRoot
+& "$PSScriptRoot/clean-build.ps1" -Stage prepare
 $env:CARGO_HOME=Join-Path $projectRoot 'build/cargo'
 $env:RC='C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\rc.exe'
 if(-not $SkipChecks){

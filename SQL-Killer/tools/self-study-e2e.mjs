@@ -1,10 +1,11 @@
+import {qaDirectory} from './qa-session.mjs';
 // Real Tauri/WebView2 QA, isolated from personal application data.
 import {remote,Key} from 'webdriverio';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-const root=process.cwd(),output=path.join(root,'build/qa',process.env.SQL_KILLER_QA_LABEL??'self-study');
+const root=process.cwd(),output=qaDirectory(process.env.SQL_KILLER_QA_LABEL??'self-study');
 await mkdir(output,{recursive:true});
 process.env.NO_PROXY='localhost,127.0.0.1';process.env.no_proxy=process.env.NO_PROXY;
 const env={...process.env,SQL_KILLER_DATA_DIR:path.join(output,'data'),WEBVIEW2_BROWSER_EXECUTABLE_FOLDER:path.join(root,'build/runtime-expanded/Microsoft.WebView2.FixedVersionRuntime.154.0.4258.48.x64')};
