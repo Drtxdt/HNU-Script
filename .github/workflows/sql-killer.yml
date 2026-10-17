@@ -28,6 +28,7 @@ jobs:
           components: clippy,rustfmt
       - run: pnpm install --frozen-lockfile
       - run: node tools/check-version.mjs
+      - run: ./tools/test-clean-build.ps1
       - run: cargo test -p sql-killer-core --locked
       - run: git diff --exit-code -- src/generated
       - run: cargo clippy -p sql-killer-core --all-targets --locked -- -D warnings

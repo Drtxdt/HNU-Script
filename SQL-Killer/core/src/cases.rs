@@ -581,6 +581,15 @@ mod tests {
             },
         ];
         assert_eq!(close_case(&p, &Budget::default()).unwrap().status, "passed");
+        let mut ordinary = p.clone();
+        for relation in &mut ordinary.board.relations {
+            relation.kind = "related".into();
+        }
+        assert!(close_case(&ordinary, &Budget::default()).is_err());
+        let mut moved = p.clone();
+        moved.board.x = 120.0;
+        moved.board.zoom = 0.5;
+        assert!(close_case(&moved, &Budget::default()).is_ok());
         let mut disconnected = p.clone();
         disconnected.board.relations.clear();
         assert!(close_case(&disconnected, &Budget::default()).is_err());

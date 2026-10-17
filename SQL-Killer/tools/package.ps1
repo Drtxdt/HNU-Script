@@ -1,7 +1,9 @@
 param([string]$Label='',[switch]$PortableOnly)
 $ErrorActionPreference='Stop'
 $projectRoot=Split-Path $PSScriptRoot -Parent
-if(-not $Label){$Label=(Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json).version}
+$expectedVersion=(Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json).version
+if(-not $Label){$Label=$expectedVersion}
+if($Label -ne $expectedVersion){throw 'Packaging label must match the current source version'}
 Set-Location $projectRoot
 $delivery=Join-Path $projectRoot 'release'
 $out=Join-Path $delivery '.staging'
@@ -20,7 +22,7 @@ foreach($file in @('README.md','VALIDATION.md','runtime.lock.json','LICENSE')){C
 foreach($directory in @('curriculum','examples','licenses')){Copy-Item -LiteralPath $directory -Destination $portable -Recurse -Force}
 $source=Join-Path $portable 'source'
 New-Item -ItemType Directory -Force $source | Out-Null
-$tracked=git ls-files -- .
+$tracked=git -c core.quotepath=false ls-files -- .
 foreach($relative in $tracked){$origin=Join-Path $projectRoot $relative;$destination=Join-Path $source $relative;New-Item -ItemType Directory -Force (Split-Path $destination -Parent)|Out-Null;Copy-Item -LiteralPath $origin -Destination $destination}
 $zip=Join-Path $out "SQL-Killer-$Label-Windows-x64.zip"
 tar.exe -a -cf $zip -C $out (Split-Path $portable -Leaf)

@@ -1,0 +1,56 @@
+{
+  "origin": "Real Tauri/WebView2 screenshots",
+  "version": "1.3.0",
+  "compression": "WebP quality 82; max 1500x960",
+  "screenshots": [
+    {
+      "file": "01-learning.webp",
+      "source": "01-learning.png",
+      "width": 1500,
+      "height": 960,
+      "bytes": 39210
+    },
+    {
+      "file": "02-evidence-board-light.webp",
+      "source": "02-evidence-board-light.png",
+      "width": 1500,
+      "height": 960,
+      "bytes": 44382
+    },
+    {
+      "file": "03-evidence-board-dark.webp",
+      "source": "03-evidence-board-dark.png",
+      "width": 1500,
+      "height": 960,
+      "bytes": 47392
+    },
+    {
+      "file": "04-case-closed.webp",
+      "source": "04-case-closed.png",
+      "width": 1500,
+      "height": 960,
+      "bytes": 75734
+    },
+    {
+      "file": "05-course-next.webp",
+      "source": "05-course-next.png",
+      "width": 1500,
+      "height": 960,
+      "bytes": 49134
+    },
+    {
+      "file": "06-comparison.webp",
+      "source": "06-comparison.png",
+      "width": 1500,
+      "height": 960,
+      "bytes": 58170
+    },
+    {
+      "file": "07-case-dark.webp",
+      "source": "07-case-dark.png",
+      "width": 1500,
+      "height": 960,
+      "bytes": 50764
+    }
+  ]
+}

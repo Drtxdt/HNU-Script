@@ -84,50 +84,52 @@ fn two_query_comparison_uses_snapshot_and_does_not_write() {
     assert!(database::execute(&c, "CREATE TABLE NewTable(n)", &Budget::default()).modified);
 }
 #[test]
-fn version_one_project_migrates_without_losing_answers_or_database() {
-    let base = std::path::Path::new("../build/self-study-tests");
-    std::fs::create_dir_all(base).unwrap();
-    let dir = tempfile::tempdir_in(base).unwrap();
-    let path = dir.path().join("legacy.sqlkproj");
-    let c = database::memory("student").unwrap();
-    let mut p = project::Workspace {
-        exercise_seed: 3,
-        ..Default::default()
-    };
-    p.exercise_answers
-        .insert("where@3".into(), "SELECT Sno FROM Student".into());
-    project::save(&path, &p, &c).unwrap();
-    let mut zip = zip::ZipArchive::new(std::fs::File::open(&path).unwrap()).unwrap();
-    let mut data = Vec::new();
-    zip.by_name("database.sqlite")
-        .unwrap()
-        .read_to_end(&mut data)
-        .unwrap();
-    drop(zip);
-    let mut manifest = serde_json::to_value(&p).unwrap();
-    manifest["format_version"] = 1.into();
-    manifest["view"] = serde_json::Value::Null;
-    manifest.as_object_mut().unwrap().remove("learning");
-    manifest.as_object_mut().unwrap().remove("case_progress");
-    let mut out = zip::ZipWriter::new(std::fs::File::create(&path).unwrap());
-    let options = zip::write::SimpleFileOptions::default();
-    out.start_file("manifest.json", options).unwrap();
-    out.write_all(&serde_json::to_vec(&manifest).unwrap())
-        .unwrap();
-    out.start_file("database.sqlite", options).unwrap();
-    out.write_all(&data).unwrap();
-    out.finish().unwrap();
-    let (restored, db) = project::load(&path, dir.path()).unwrap();
-    assert_eq!(restored.format_version, 3);
-    assert_eq!(restored.exercise_seed, 3);
-    assert_eq!(restored.exercise_answers, p.exercise_answers);
-    assert_eq!(restored.view["migrated_from"], 1);
-    assert_eq!(database::schema(&db).unwrap().relations.len(), 5);
-    let still_old: serde_json::Value = {
-        let mut z = zip::ZipArchive::new(std::fs::File::open(path).unwrap()).unwrap();
-        serde_json::from_reader(z.by_name("manifest.json").unwrap()).unwrap()
-    };
-    assert_eq!(still_old["format_version"], 1);
+fn old_projects_migrate_without_losing_answers_or_database() {
+    for old_version in [1, 2] {
+        let base = std::path::Path::new("../build/self-study-tests");
+        std::fs::create_dir_all(base).unwrap();
+        let dir = tempfile::tempdir_in(base).unwrap();
+        let path = dir.path().join("legacy.sqlkproj");
+        let c = database::memory("student").unwrap();
+        let mut p = project::Workspace {
+            exercise_seed: 3,
+            ..Default::default()
+        };
+        p.exercise_answers
+            .insert("where@3".into(), "SELECT Sno FROM Student".into());
+        project::save(&path, &p, &c).unwrap();
+        let mut zip = zip::ZipArchive::new(std::fs::File::open(&path).unwrap()).unwrap();
+        let mut data = Vec::new();
+        zip.by_name("database.sqlite")
+            .unwrap()
+            .read_to_end(&mut data)
+            .unwrap();
+        drop(zip);
+        let mut manifest = serde_json::to_value(&p).unwrap();
+        manifest["format_version"] = old_version.into();
+        manifest["view"] = serde_json::Value::Null;
+        manifest.as_object_mut().unwrap().remove("learning");
+        manifest.as_object_mut().unwrap().remove("case_progress");
+        let mut out = zip::ZipWriter::new(std::fs::File::create(&path).unwrap());
+        let options = zip::write::SimpleFileOptions::default();
+        out.start_file("manifest.json", options).unwrap();
+        out.write_all(&serde_json::to_vec(&manifest).unwrap())
+            .unwrap();
+        out.start_file("database.sqlite", options).unwrap();
+        out.write_all(&data).unwrap();
+        out.finish().unwrap();
+        let (restored, db) = project::load(&path, dir.path()).unwrap();
+        assert_eq!(restored.format_version, 3);
+        assert_eq!(restored.exercise_seed, 3);
+        assert_eq!(restored.exercise_answers, p.exercise_answers);
+        assert_eq!(restored.view["migrated_from"], old_version);
+        assert_eq!(database::schema(&db).unwrap().relations.len(), 5);
+        let still_old: serde_json::Value = {
+            let mut z = zip::ZipArchive::new(std::fs::File::open(path).unwrap()).unwrap();
+            serde_json::from_reader(z.by_name("manifest.json").unwrap()).unwrap()
+        };
+        assert_eq!(still_old["format_version"], old_version);
+    }
 }
 
 #[test]

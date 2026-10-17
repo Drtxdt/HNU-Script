@@ -32,8 +32,32 @@ fn normalized(sql: &str) -> String {
         .join(" ")
 }
 
+fn range_for(sql: &str, step: &TraceStep) -> Option<SourceRange> {
+    let r = step.source_range.clone()?;
+    if step.kind != "join" {
+        return Some(r);
+    }
+    let tokens = crate::script::tokenize(sql);
+    if let Some(i) = tokens
+        .iter()
+        .rposition(|t| !t.quoted && t.text.eq_ignore_ascii_case("JOIN") && t.start <= r.start)
+    {
+        let mut start = i;
+        while start > 0
+            && [
+                "LEFT", "RIGHT", "INNER", "FULL", "CROSS", "OUTER", "NATURAL",
+            ]
+            .iter()
+            .any(|k| tokens[start - 1].text.eq_ignore_ascii_case(k))
+        {
+            start -= 1;
+        }
+        return Some(source_range(sql, tokens[start].start, r.end));
+    }
+    Some(r)
+}
 fn fragment(sql: &str, step: &TraceStep) -> String {
-    step.source_range
+    range_for(sql, step)
         .as_ref()
         .and_then(|r| sql.get(r.start..r.end))
         .filter(|s| !s.is_empty())
@@ -77,8 +101,8 @@ pub fn align(left: &Trace, right: &Trace, left_sql: &str, right_sql: &str) -> Ve
                 diff: Some(diff),
                 changed_condition: changed,
                 message: message.into(),
-                left_range: a.source_range.clone(),
-                right_range: b.source_range.clone(),
+                left_range: range_for(left_sql, a),
+                right_range: range_for(right_sql, b),
             });
         } else {
             out.push(ComparisonStep {
@@ -89,7 +113,7 @@ pub fn align(left: &Trace, right: &Trace, left_sql: &str, right_sql: &str) -> Ve
                 diff: None,
                 changed_condition: false,
                 message: "没有可靠的对应操作，单独展示查询 A 的步骤。".into(),
-                left_range: a.source_range.clone(),
+                left_range: range_for(left_sql, a),
                 right_range: None,
             });
         }
@@ -104,7 +128,7 @@ pub fn align(left: &Trace, right: &Trace, left_sql: &str, right_sql: &str) -> Ve
             changed_condition: false,
             message: "没有可靠的对应操作，单独展示查询 B 的步骤。".into(),
             left_range: None,
-            right_range: b.source_range.clone(),
+            right_range: range_for(right_sql, b),
         });
     }
     out

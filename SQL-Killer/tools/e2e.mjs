@@ -162,7 +162,7 @@ try{
  await invoke('export',{path:path.join(output,'中文.csv'),table:{columns:['值'],rows:[[{kind:'text',value:'中文,😀'}]],truncated:false},format:'csv'});
  await shot('06-unicode.png');
  if(process.env.SQL_KILLER_QA_MYSQL){
-   await browser.$('button[title="MySQL 连接设置"]').click();
+   await browser.$('.database-menu summary').click();await browser.$('button=连接设置').click();
    const dialog=await browser.$('[aria-label="MySQL 连接"]');await dialog.$('input[type="number"]').setValue('13367');
    await dialog.$('[data-testid="mysql-connect"]').click();
    await browser.waitUntil(async()=>(await dialog.getText()).includes('三个独立会话'),{timeout:15000});
