@@ -152,6 +152,8 @@ pub struct StatementResult {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../../src/generated/")]
 pub struct Execution {
+    #[serde(default)]
+    pub modified: bool,
     pub results: Vec<StatementResult>,
     pub status: String,
     pub error: Option<String>,
@@ -218,7 +220,7 @@ impl Budget {
     }
     pub fn teaching(&self) -> Self {
         Self {
-            max_rows: 10_000,
+            max_rows: self.max_rows.min(10_000),
             ..self.clone()
         }
     }

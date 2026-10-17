@@ -135,6 +135,10 @@ fn cell(v: ValueRef<'_>) -> Cell {
     }
 }
 pub fn execute(c: &Connection, source: &str, budget: &Budget) -> Execution {
+    let before_changes = c.total_changes();
+    let before_schema = c
+        .query_row("PRAGMA schema_version", [], |r| r.get::<_, i64>(0))
+        .unwrap_or(0);
     let started = Instant::now();
     let mut results = Vec::new();
     let mut error = None;
@@ -231,6 +235,10 @@ pub fn execute(c: &Connection, source: &str, budget: &Budget) -> Execution {
         }
     }
     Execution {
+        modified: c.total_changes() != before_changes
+            || c.query_row("PRAGMA schema_version", [], |r| r.get::<_, i64>(0))
+                .unwrap_or(0)
+                != before_schema,
         results,
         status,
         error,

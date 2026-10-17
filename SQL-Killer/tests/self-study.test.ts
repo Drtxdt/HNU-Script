@@ -1,0 +1,20 @@
+import {beforeEach,expect,it,vi} from 'vitest';
+import {createPinia,setActivePinia} from 'pinia';
+import {ModelCache} from '../src/modelCache';
+import type {Workspace,Question} from '../src/api';
+const {api}=vi.hoisted(()=>({api:vi.fn()}));
+vi.mock('../src/api',()=>({api}));
+import {useLab} from '../src/store';
+beforeEach(()=>{setActivePinia(createPinia());api.mockReset();api.mockResolvedValue(true)});
+it('read-only navigation invalidates jobs without marking a project dirty',()=>{const lab=useLab();lab.invalidateJobs(['grade']);expect(lab.dirty).toBe(false);expect(lab.revision).toBe(0)});
+it('saving progress does not invalidate an unrelated running channel',async()=>{let deliver!:(value:string)=>void;api.mockImplementation((cmd:string)=>cmd==='trace'?new Promise<string>(resolve=>deliver=resolve):Promise.resolve(true));const lab=useLab();const job=lab.run<string>('trace','trace');lab.markDirty();deliver('current');expect(await job).toBe('current');expect(lab.revision).toBe(1)});
+it('switching a question rejects late grade results while other channels continue',async()=>{let deliver!:(value:string)=>void;api.mockImplementation((cmd:string)=>cmd==='grade'?new Promise<string>(resolve=>deliver=resolve):Promise.resolve('current'));const lab=useLab();const job=lab.run<string>('grade','grade');lab.invalidateJobs(['grade']);deliver('obsolete');expect(await job).toBeUndefined();expect(await lab.run('trace','trace')).toBe('current');expect(lab.dirty).toBe(false)});
+it('model cache bounds inactive undo histories and protects active models',()=>{const cache=new ModelCache<{dispose:()=>void}>(16);const active={dispose:vi.fn()};cache.acquire('active',()=>active);const disposed=vi.fn();for(let n=0;n<100;n++){cache.acquire(String(n),()=>({dispose:disposed}));cache.release(String(n))}expect(cache.size).toBe(17);expect(disposed).toHaveBeenCalledTimes(84);expect(active.dispose).not.toHaveBeenCalled();cache.release('active');expect(cache.size).toBe(16);cache.clear();expect(active.dispose).toHaveBeenCalledOnce();expect(cache.size).toBe(0)});
+it('project changes defer disposing the active model until its editor detaches',()=>{const cache=new ModelCache<{dispose:()=>void}>();const model={dispose:vi.fn()};cache.acquire('old-project',()=>model);cache.clear();expect(model.dispose).not.toHaveBeenCalled();cache.release('old-project');expect(model.dispose).toHaveBeenCalledOnce();expect(cache.size).toBe(0)});
+it('restoring seed zero reloads its catalogue and rejects the previous project response',async()=>{
+ const deliveries:((q:Question[])=>void)[]=[];api.mockImplementation((cmd:string)=>cmd==='catalog'?new Promise<Question[]>(resolve=>deliveries.push(resolve)):Promise.resolve(true));
+ const lab=useLab();const workspace=(seed:number)=>({documents:[],active_document:'',exercise_seed:seed,view:{page:'learn'},learning:{last_question:''}} as unknown as Workspace);
+ lab.restore(workspace(3));lab.restore(workspace(0));expect(deliveries).toHaveLength(2);
+ deliveries[0]([{id:'old'} as Question]);await Promise.resolve();expect(lab.questions).toEqual([]);
+ deliveries[1]([{id:'current'} as Question]);await Promise.resolve();expect(lab.questions[0]?.id).toBe('current');expect(lab.dirty).toBe(false);
+});

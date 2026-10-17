@@ -1,6 +1,6 @@
 {
   "name": "sql-killer",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.33.0",
@@ -12,7 +12,9 @@
     "lint": "eslint src tools tests",
     "tauri": "tauri",
     "test:core": "cargo test -p sql-killer-core",
-    "test:e2e": "node tools/e2e.mjs"
+    "test:e2e": "node tools/e2e.mjs",
+    "test:self-study": "node tools/self-study-e2e.mjs",
+    "check:version": "node tools/check-version.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "2.12.0",

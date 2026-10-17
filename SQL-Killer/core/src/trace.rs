@@ -175,6 +175,7 @@ fn build_query(
                 )
             };
             if !s.from.is_empty() {
+                let mut from_parents = Vec::new();
                 for f in &s.from {
                     let left = format!("{prefix}SELECT * FROM {}", f.relation);
                     steps.push(planned(
@@ -208,6 +209,7 @@ fn build_query(
                         left_id = steps.len();
                         steps.push(p);
                     }
+                    from_parents.push(left_id);
                 }
                 if s.from.len() > 1 {
                     steps.push(planned(
@@ -216,6 +218,7 @@ fn build_query(
                         format!("{prefix}SELECT *{from}"),
                         "逗号连接先组合关系；WHERE 再筛选。",
                     ));
+                    steps.last_mut().unwrap().parents = Some(from_parents);
                 }
             }
             let mut inspect = Inspector {
@@ -495,13 +498,15 @@ pub fn trace_query(c: &rusqlite::Connection, source: &str, budget: &Budget) -> T
             trace.message = "已与同一快照下的原 SQL 结果核对".into();
         }
         Err(e) => {
-            trace.status = if budget.check().is_err() {
+            trace.status = if budget.check().is_err() || e.contains("超过") || e.contains("上限")
+            {
                 "incomplete"
             } else {
                 "unsupported"
             }
             .into();
             trace.message = e;
+            trace.verified = false;
             trace.steps.clear();
         }
     }
@@ -528,13 +533,21 @@ pub async fn trace_mysql(
             .map_err(failure)?;
         let b = budget.teaching();
         for p in planned {
+            b.check()?;
+            if trace.steps.len() >= b.max_steps {
+                return Err("过程步骤超过限制".into());
+            }
             let table = database::mysql::query(&mut c, &p.sql, &b).await?;
             if table.truncated {
                 return Err("中间结果超过教学限制".to_string());
             }
             let mut details = vec![];
             for sql in p.details {
-                details.push(database::mysql::query(&mut c, &sql, &b).await?);
+                let detail = database::mysql::query(&mut c, &sql, &b).await?;
+                if detail.truncated {
+                    return Err("明细超过教学上限".to_string());
+                }
+                details.push(detail);
             }
             let id = trace.steps.len();
             trace.steps.push(TraceStep {
@@ -575,6 +588,7 @@ pub async fn trace_mysql(
                 Ok(Err(e)) => e,
                 _ => "MySQL 过程分析超时".into(),
             };
+            trace.verified = false;
             trace.steps.clear();
         }
     }

@@ -1,0 +1,36 @@
+name: SQL-Killer checks
+on:
+  pull_request:
+    paths: ['SQL-Killer/**', '.github/workflows/sql-killer.yml']
+  push:
+    paths: ['SQL-Killer/**', '.github/workflows/sql-killer.yml']
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: SQL-Killer
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+          cache: pnpm
+          cache-dependency-path: SQL-Killer/pnpm-lock.yaml
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.94.1
+          components: clippy,rustfmt
+      - run: pnpm install --frozen-lockfile
+      - run: node tools/check-version.mjs
+      - run: cargo test -p sql-killer-core --locked
+      - run: git diff --exit-code -- src/generated
+      - run: cargo clippy -p sql-killer-core --all-targets --locked -- -D warnings
+      - run: pnpm test
+      - run: pnpm lint
+      - run: pnpm build

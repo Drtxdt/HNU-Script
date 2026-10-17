@@ -2,4 +2,4 @@
 import type { SourceRange } from "./SourceRange";
 import type { StatementResult } from "./StatementResult";
 
-export type Execution = { results: Array<StatementResult>, status: string, error: string | null, error_range: SourceRange | null, transaction: string, elapsed_ms: bigint, };
+export type Execution = { modified: boolean, results: Array<StatementResult>, status: string, error: string | null, error_range: SourceRange | null, transaction: string, elapsed_ms: bigint, };

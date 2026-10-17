@@ -109,6 +109,7 @@ struct Scope {
     end: usize,
     depth: usize,
     tables: BTreeMap<String, Vec<String>>,
+    bindings: BTreeMap<String, String>,
     outputs: Vec<String>,
 }
 fn scopes(sql: &str, schema: &Schema) -> Vec<Scope> {
@@ -149,6 +150,7 @@ fn scopes(sql: &str, schema: &Schema) -> Vec<Scope> {
             end: t.get(end).map(|t| t.start).unwrap_or(sql.len()),
             depth: tok.depth,
             tables: BTreeMap::new(),
+            bindings: BTreeMap::new(),
             outputs: projection(&t[i..end]),
         };
         let mut in_from = false;
@@ -188,6 +190,7 @@ fn scopes(sql: &str, schema: &Schema) -> Vec<Scope> {
                         a += 1
                     }
                     if a < end && is_name(&t[a]) && !keyword(&t[a].text) {
+                        scope.bindings.insert(ident(&t[a]), String::new());
                         scope.tables.insert(ident(&t[a]), fields);
                     }
                     j = k + 1;
@@ -196,7 +199,11 @@ fn scopes(sql: &str, schema: &Schema) -> Vec<Scope> {
                 }
             }
             if need_table && is_name(cur) {
-                let name = ident(cur);
+                let mut name = ident(cur);
+                if j + 2 < end && t[j + 1].text == "." && is_name(&t[j + 2]) {
+                    name = ident(&t[j + 2]);
+                    j += 2;
+                }
                 let fields = ctes
                     .get(&name)
                     .cloned()
@@ -208,8 +215,16 @@ fn scopes(sql: &str, schema: &Schema) -> Vec<Scope> {
                 let alias = if a < end && is_name(&t[a]) && !keyword(&t[a].text) {
                     ident(&t[a])
                 } else {
-                    name
+                    name.clone()
                 };
+                scope.bindings.insert(
+                    alias.clone(),
+                    if ctes.contains_key(&name) {
+                        format!("@cte:{name}")
+                    } else {
+                        name
+                    },
+                );
                 scope.tables.insert(alias, fields);
                 need_table = false;
             }
@@ -637,6 +652,48 @@ fn distance(a: &str, b: &str) -> usize {
         }
     }
     d[b.len()]
+}
+
+pub fn resolve_reference(
+    sql: &str,
+    cursor: usize,
+    schema: &Schema,
+    engine: &str,
+    relation: &str,
+    column: &str,
+) -> Vec<Completion> {
+    let quote = |s: &str| {
+        if engine == "mysql" {
+            mysql_identifier(s)
+        } else {
+            quote_identifier(s)
+        }
+    };
+    if column.is_empty() {
+        return vec![Completion {
+            label: relation.into(),
+            insert_text: quote(relation),
+            kind: "table".into(),
+            detail: "插入表名；请放入 FROM 或 JOIN".into(),
+        }];
+    }
+    let mut visible = scopes(sql, schema);
+    visible.retain(|s| s.start <= cursor && cursor <= s.end);
+    visible.sort_by_key(|s| s.depth);
+    let mut bindings = BTreeMap::new();
+    for scope in visible {
+        bindings.extend(scope.bindings);
+    }
+    bindings
+        .into_iter()
+        .filter(|(_, base)| base.eq_ignore_ascii_case(relation))
+        .map(|(alias, _)| Completion {
+            label: format!("{alias}.{column}"),
+            insert_text: format!("{}.{}", quote(&alias), quote(column)),
+            kind: "column".into(),
+            detail: format!("{relation} 的当前作用域引用"),
+        })
+        .collect()
 }
 
 #[cfg(test)]

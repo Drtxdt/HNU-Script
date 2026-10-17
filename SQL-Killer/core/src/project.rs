@@ -18,6 +18,10 @@ pub struct Document {
 #[ts(export, export_to = "../../src/generated/")]
 pub struct Workspace {
     pub format_version: u32,
+    #[serde(default)]
+    pub learning: crate::learning::LearningState,
+    #[serde(default)]
+    pub case_progress: crate::cases::CaseProgress,
     pub documents: Vec<Document>,
     pub active_document: String,
     pub fixture: String,
@@ -33,13 +37,13 @@ pub struct Workspace {
 }
 impl Default for Workspace {
     fn default() -> Self {
-        Self{format_version:1,documents:vec![Document{id:"main".into(),title:"课堂查询.sql".into(),text:"SELECT S.Sname, C.Cno, C.Grade\nFROM Student S\nLEFT JOIN SC C ON S.Sno = C.Sno\nORDER BY S.Sno, C.Cno;".into()}],active_document:"main".into(),fixture:"student".into(),algebra:"project{Sno,Sname}(select{Sage >= 18}(Student))".into(),schedule:"T1 read A\nT2 read A\nT1 set A A-100\nT1 write A\nT1 commit\nT2 set A A-200\nT2 write A\nT2 commit".into(),initial:BTreeMap::from([("A".into(),300),("B".into(),300)]),exercise_answers:BTreeMap::new(),exercise_seed:0,progress:BTreeMap::new(),mistakes:vec![],view:serde_json::json!({"theme":"system","page":"ide"}),mysql_profile:serde_json::Value::Null}
+        Self{format_version:2,learning:Default::default(),case_progress:Default::default(),documents:vec![Document{id:"main".into(),title:"课堂查询.sql".into(),text:"SELECT S.Sname, C.Cno, C.Grade\nFROM Student S\nLEFT JOIN SC C ON S.Sno = C.Sno\nORDER BY S.Sno, C.Cno;".into()}],active_document:"main".into(),fixture:"student".into(),algebra:"project{Sno,Sname}(select{Sage >= 18}(Student))".into(),schedule:"T1 read A\nT2 read A\nT1 set A A-100\nT1 write A\nT1 commit\nT2 set A A-200\nT2 write A\nT2 commit".into(),initial:BTreeMap::from([("A".into(),300),("B".into(),300)]),exercise_answers:BTreeMap::new(),exercise_seed:0,progress:BTreeMap::new(),mistakes:vec![],view:serde_json::json!({"theme":"system","page":"learn"}),mysql_profile:serde_json::Value::Null}
     }
 }
 pub fn validate(p: &Workspace) -> Result<(), String> {
-    if p.format_version != 1 {
+    if ![1, 2].contains(&p.format_version) {
         return Err(format!(
-            "不支持工程版本 {}；当前仅支持版本 1",
+            "不支持工程版本 {}；当前支持版本 1、2",
             p.format_version
         ));
     }
@@ -60,6 +64,10 @@ pub fn validate(p: &Workspace) -> Result<(), String> {
     }
     if !ids.contains(&p.active_document) {
         return Err("活动文档不存在".into());
+    }
+    crate::cases::validate_evidence(&p.case_progress.evidence)?;
+    if serde_json::to_vec(p).map_err(failure)?.len() > 8 * 1024 * 1024 {
+        return Err("工程元数据超过 8 MiB".into());
     }
     database::preset(&p.fixture)?;
     if p.algebra.len() > 65536 || p.schedule.len() > 65536 || p.mistakes.len() > 500 {
@@ -102,6 +110,10 @@ pub fn save(path: &Path, workspace: &Workspace, c: &rusqlite::Connection) -> Res
         return Err("教学工程数据库超过 100 MiB".into());
     }
     let mut p = workspace.clone();
+    p.format_version = 2;
+    if let Some(view) = p.view.as_object_mut() {
+        view.remove("migrated_from");
+    }
     scrub(&mut p.mysql_profile);
     let data = serde_json::to_vec_pretty(&p).map_err(failure)?;
     let mut target = tempfile::NamedTempFile::new_in(parent).map_err(failure)?;
@@ -142,6 +154,17 @@ pub fn load(path: &Path, directory: &Path) -> Result<(Workspace, rusqlite::Conne
     let mut p: Workspace =
         serde_json::from_slice(&manifest).map_err(|e| format!("工程元数据损坏：{e}"))?;
     validate(&p)?;
+    if p.format_version == 1 {
+        p.format_version = 2;
+        if !p.view.is_object() {
+            let legacy = std::mem::take(&mut p.view);
+            p.view = serde_json::json!({"legacy_view":legacy,"page":"ide"});
+        }
+        if let Some(view) = p.view.as_object_mut() {
+            view.entry("page").or_insert(serde_json::json!("ide"));
+            view.insert("migrated_from".into(), serde_json::json!(1));
+        }
+    }
     scrub(&mut p.mysql_profile);
     let db = {
         let mut f = zip.by_name("database.sqlite").map_err(failure)?;

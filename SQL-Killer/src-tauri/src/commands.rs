@@ -66,6 +66,23 @@ async fn dispatch(
         text(&args, "session")
     };
     match command {
+        "case_repair_mysql" => {
+            sql_killer_core::cases::check_context(
+                text(&args, "case_id"),
+                args["version"].as_u64().unwrap_or(0) as u32,
+            )?;
+            let cfg = state
+                .configs
+                .lock()
+                .unwrap()
+                .get("main")
+                .cloned()
+                .ok_or("请先连接 MySQL；验证将新建并清理专用临时数据库")?;
+            encode(
+                sql_killer_core::cases_mysql::validate(&cfg, text(&args, "strategy"), &budget)
+                    .await?,
+            )
+        }
         "mysql_connect" => {
             let cfg: database::mysql::MysqlConfig = decode(&args["config"])?;
             let conn = database::mysql::connect(&cfg).await?;
@@ -272,6 +289,74 @@ fn sync_dispatch(
     b: &Budget,
 ) -> Result<Value, String> {
     match command {
+        "resolve_reference" => encode(language::resolve_reference(
+            text(args, "sql"),
+            args["cursor"].as_u64().unwrap_or(0) as usize,
+            &decode(&args["schema"])?,
+            text(args, "engine"),
+            text(args, "relation"),
+            text(args, "column"),
+        )),
+        "predict" => encode(sql_killer_core::learning::predict(
+            text(args, "id"),
+            args["choice"].as_u64().unwrap_or(usize::MAX as u64) as usize,
+            b,
+        )?),
+        "compare_queries" => encode(sql_killer_core::cases::compare_queries(
+            &state.db.lock().unwrap(),
+            text(args, "left"),
+            text(args, "right"),
+            b,
+        )?),
+        "case_catalog" => encode(sql_killer_core::cases::spec()),
+        "case_schema" | "case_query" | "case_trace" | "case_grade" | "case_reproduction"
+        | "case_repair" | "case_close" => {
+            use sql_killer_core::cases;
+            cases::check_context(
+                text(args, "case_id"),
+                args["version"].as_u64().unwrap_or(0) as u32,
+            )?;
+            let seed = args["seed"].as_u64().unwrap_or(0);
+            match command {
+                "case_schema" => encode(database::schema(&cases::fixture(seed, 0)?)?),
+                "case_query" => encode(
+                    json!({"table":cases::query(&cases::fixture(seed,0)?,text(args,"sql"),b)?,"snapshot":cases::snapshot(seed)}),
+                ),
+                "case_trace" => {
+                    let c = cases::fixture(seed, 0)?;
+                    cases::query(&c, text(args, "sql"), b)?;
+                    encode(trace::trace_query(&c, text(args, "sql"), b))
+                }
+                "case_grade" => {
+                    encode(cases::grade(text(args, "task"), text(args, "sql"), seed, b))
+                }
+                "case_reproduction" => {
+                    let (source, simulation) = cases::reproduction(b)?;
+                    encode(json!({"source":source,"simulation":simulation}))
+                }
+                "case_repair" => encode(cases::validate_repair(text(args, "strategy"), b)?),
+                "case_close" => encode(cases::close_case(&decode(&args["progress"])?, b)?),
+                _ => unreachable!(),
+            }
+        }
+        "case_templates" => {
+            sql_killer_core::cases::check_context(
+                text(args, "case_id"),
+                args["version"].as_u64().unwrap_or(0) as u32,
+            )?;
+            encode(include_str!("../../curriculum/case-repair.mysql.sql"))
+        }
+        "fixture_preview" => {
+            let c = exercises::fixture(text(args, "fixture"), 0)?;
+            encode(database::query(
+                &c,
+                &format!(
+                    "SELECT * FROM {} LIMIT 100",
+                    quote_identifier(text(args, "relation"))
+                ),
+                b,
+            )?)
+        }
         "fixture_schema" => encode(database::schema(&database::memory(text(args, "fixture"))?)?),
         "exercise_trace" => {
             let q = exercises::catalog(args["seed"].as_u64().unwrap_or(0))
@@ -306,9 +391,13 @@ fn sync_dispatch(
                 b,
             ))
         }
-        "bootstrap" => Ok(
-            json!({"workspace":state.workspace.lock().unwrap().clone(),"schema":database::schema(&state.db.lock().unwrap())?,"questions":exercises::catalog(0),"recovery":state.directory.join("recovery.sqlkproj").exists(),"data_directory":state.directory,"version":"1.1.0"}),
-        ),
+        "bootstrap" => {
+            let workspace = state.workspace.lock().unwrap().clone();
+            let questions = exercises::catalog(workspace.exercise_seed);
+            Ok(
+                json!({"workspace":workspace,"schema":database::schema(&state.db.lock().unwrap())?,"questions":questions,"recovery":state.directory.join("recovery.sqlkproj").exists(),"data_directory":state.directory,"version":env!("CARGO_PKG_VERSION"),"lessons":sql_killer_core::learning::lessons(),"predictions":sql_killer_core::learning::predictions()}),
+            )
+        }
         "execute" => encode(database::execute(
             &state.db.lock().unwrap(),
             text(args, "sql"),

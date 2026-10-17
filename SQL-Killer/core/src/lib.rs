@@ -1,8 +1,11 @@
 pub mod algebra;
 pub mod animation;
+pub mod cases;
+pub mod cases_mysql;
 pub mod database;
 pub mod exercises;
 pub mod language;
+pub mod learning;
 pub mod model;
 pub mod project;
 pub mod schedule;

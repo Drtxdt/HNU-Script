@@ -8,7 +8,7 @@ process.env.NO_PROXY='localhost,127.0.0.1';process.env.no_proxy=process.env.NO_P
 const output=path.join(root,'build/qa',process.env.SQL_KILLER_QA_LABEL??'e2e');await mkdir(output,{recursive:true});
 const app=process.env.SQL_KILLER_TEST_EXE??path.join(root,'target/debug/sql-killer.exe');
 if(process.env.SQL_KILLER_QA_ISOLATED&&!path.resolve(app).startsWith(path.join(root,'build','qa')+path.sep))throw Error('Isolated QA must target a dedicated extracted copy under build/qa');
-const environment={...process.env,SQL_KILLER_DATA_DIR:path.join(output,'data'),WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS:`--force-device-scale-factor=${process.env.SQL_KILLER_QA_SCALE??'1'}`,WEBVIEW2_BROWSER_EXECUTABLE_FOLDER:path.join(root,'build/runtime-expanded/Microsoft.WebView2.FixedVersionRuntime.154.0.4258.48.x64')};
+const environment={...process.env,SQL_KILLER_DATA_DIR:path.join(output,'data'),WEBVIEW2_BROWSER_EXECUTABLE_FOLDER:path.join(root,'build/runtime-expanded/Microsoft.WebView2.FixedVersionRuntime.154.0.4258.48.x64')};
 if(process.env.SQL_KILLER_QA_ISOLATED){for(const key of Object.keys(environment))if(/^(PYTHON|NODE|QT|RUST|CARGO|VIRTUAL_ENV)/i.test(key))delete environment[key];environment.PATH=`${process.env.SystemRoot}\\System32;${process.env.SystemRoot}`;if(!process.env.SQL_KILLER_QA_INSTALLED)delete environment.SQL_KILLER_DATA_DIR;environment.WEBVIEW2_BROWSER_EXECUTABLE_FOLDER=path.join(output,'deliberately-unavailable-runtime');environment.HTTP_PROXY='http://127.0.0.1:1';environment.HTTPS_PROXY='http://127.0.0.1:1';}
 const driver=spawn(path.join(root,'build/tools/bin/tauri-driver.exe'),['--native-driver',path.join(root,'build/tools/edge/msedgedriver.exe')],{windowsHide:true,env:environment});
 let log='';driver.stdout.on('data',d=>log+=d);driver.stderr.on('data',d=>log+=d);
@@ -76,9 +76,9 @@ try{
  await new Promise(r=>setTimeout(r,1500));
  browser=await remote({hostname:'127.0.0.1',port:4444,logLevel:'warn',connectionRetryCount:0,capabilities:{browserName:'wry','tauri:options':{application:app}}});
  if(process.env.SQL_KILLER_QA_CAPS)console.log(JSON.stringify(browser.capabilities));
- await browser.$('[data-testid="run"]').waitForDisplayed({timeout:30000});
+ await browser.$('[data-page="ide"]').waitForDisplayed({timeout:30000});await browser.$('[data-page="ide"]').click();await browser.$('[data-testid="run"]').waitForDisplayed({timeout:30000});
  const browserPid=Number(browser.capabilities['goog:processID']);assert.ok(Number.isSafeInteger(browserPid)&&browserPid>0);
- runtimeExecutable=await new Promise((resolve,reject)=>{const probe=spawn('powershell.exe',['-NoProfile','-NonInteractive','-Command',`[Console]::OutputEncoding = [Text.UTF8Encoding]::new(); $qaBrowser = Get-CimInstance Win32_Process -Filter "ProcessId = ${browserPid}"; if($qaBrowser.Name -eq 'msedgewebview2.exe'){$qaBrowser.ExecutablePath}else{Get-CimInstance Win32_Process -Filter "ParentProcessId = ${browserPid} AND Name = 'msedgewebview2.exe'" | Select-Object -First 1 -ExpandProperty ExecutablePath}`],{windowsHide:true});let value='';probe.stdout.on('data',d=>value+=d);probe.on('error',reject);probe.on('close',code=>code?reject(Error('runtime path probe failed')):resolve(value.trim()));});
+ runtimeExecutable=await new Promise((resolve,reject)=>{const probe=spawn(process.env.SQL_KILLER_QA_POWERSHELL??'pwsh.exe',['-NoProfile','-NonInteractive','-Command',`[Console]::OutputEncoding = [Text.UTF8Encoding]::new(); $qaBrowser = Get-Process msedgewebview2 -ErrorAction Stop | Where-Object { $_.Parent.Id -eq ${browserPid} } | Select-Object -First 1; if (-not $qaBrowser) { throw 'WebView2 child not found' }; $qaBrowser.Path`],{windowsHide:true});let value='';probe.stdout.on('data',d=>value+=d);probe.on('error',reject);probe.on('close',code=>code?reject(Error('runtime path probe failed')):resolve(value.trim()));});
  if(process.env.SQL_KILLER_QA_ISOLATED)assert.ok(String(runtimeExecutable).toLowerCase().startsWith(path.join(path.dirname(app),'WebView2').toLowerCase()),`isolated process must use its bundled WebView2: ${runtimeExecutable}`);
 
  if(process.env.SQL_KILLER_QA_SCALE){const response=await fetch(`http://127.0.0.1:4444/session/${browser.sessionId}/ms/cdp/execute`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd:'Emulation.setDeviceMetricsOverride',params:{width:1500,height:960,deviceScaleFactor:Number(process.env.SQL_KILLER_QA_SCALE),mobile:false}})});if(!response.ok)throw Error(`WebView2 scale emulation failed: ${await response.text()}`);console.log('Requested scale',process.env.SQL_KILLER_QA_SCALE,'observed DPR',await browser.execute(()=>devicePixelRatio));}
@@ -92,6 +92,7 @@ try{
  await shot('02-trace.png');
  await motionDemo('motion-join');
  if(process.env.SQL_KILLER_QA_EXPORTS){
+   await browser.$('.global-flow summary').click();
    // Keep native export commands intact; only replace the OS file chooser
    // with a deterministic path inside this run's dedicated QA directory.
    await browser.execute(directory=>{const native=window.fetch.bind(window);window.fetch=(url,options)=>decodeURIComponent(String(url)).endsWith('/plugin:dialog|save')?Promise.resolve(new Response(JSON.stringify(directory+'\\'+JSON.parse(options.body).options.defaultPath),{headers:{'Content-Type':'application/json','Tauri-Response':'ok'}})):native(url,options)},output);
@@ -121,7 +122,7 @@ try{
  await browser.waitUntil(async()=>(await browser.$('body').getText()).includes('可串行化'),{timeout:15000});
  await shot('04-transactions.png');
  await motionDemo('motion-transactions');
- await browser.$('[data-page="exercises"]').click();
+ await browser.$('[data-page="learn"]').click();await browser.$('[data-testid="start-learning"]').click();await browser.$('button=按年龄筛选').click();
  await browser.$('button=查看解析').click();
  await browser.$('button=填入参考答案').click();
  await browser.$('[data-testid="grade"]').click();
@@ -178,5 +179,5 @@ try{
  await browser.executeAsync(done=>{window.__TAURI_INTERNALS__.invoke('plugin:window|close',{label:'main'}).then(()=>done(true),e=>done(String(e)))});
  await browser.$('[aria-label="未保存修改"]').waitForDisplayed({timeout:5000});await browser.$('[aria-label="未保存修改"]').$('button=取消').click();
  await writeFile(path.join(output,'result.json'),JSON.stringify({status:'passed',date:new Date().toISOString(),app,isolated:!!process.env.SQL_KILLER_QA_ISOLATED,raceChecks:!!process.env.SQL_KILLER_QA_RACES,runtimeExecutable,motionResults,scaleMode:process.env.SQL_KILLER_QA_SCALE?'WebView2 CDP device-metrics emulation':'native system DPI',metrics,captures},null,2));
-}catch(error){if(browser)await browser.saveScreenshot(path.join(output,'failure.png')).catch(()=>{});throw error;}finally{if(browser)await browser.deleteSession().catch(()=>{});driver.kill();await writeFile(path.join(output,'webdriver.log'),log);}
+}catch(error){if(browser){try{await writeFile(path.join(output,'failure-state.json'),JSON.stringify(await browser.execute(()=>({url:location.href,ready:document.readyState,body:document.body.innerText.slice(0,8000),app:document.getElementById('app')?.innerHTML.slice(0,8000)})),null,2));await writeFile(path.join(output,'browser-errors.json'),JSON.stringify(await browser.getLogs('browser'),null,2))}catch{/* diagnostic APIs may be unavailable */}}if(browser)await browser.saveScreenshot(path.join(output,'failure.png')).catch(()=>{});throw error;}finally{if(browser)await browser.deleteSession().catch(()=>{});driver.kill();await writeFile(path.join(output,'webdriver.log'),log);}
 

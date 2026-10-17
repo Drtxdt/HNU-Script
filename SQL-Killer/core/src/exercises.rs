@@ -13,8 +13,16 @@ pub struct Question {
     pub title: String,
     pub prompt: String,
     pub starter: String,
+    #[serde(default)]
     pub hint: String,
+    #[serde(default)]
+    pub hints: Vec<String>,
+    #[serde(default)]
+    pub knowledge: String,
+    #[serde(default)]
+    pub answer_ui: String,
     pub solution: String,
+    #[serde(default)]
     pub explanation: String,
     pub kind: String,
     pub engine: String,
@@ -35,317 +43,34 @@ pub struct Grade {
     pub expected: Option<Table>,
     pub actual: Option<Table>,
     pub explanation: String,
+    pub diff: Option<TableDiff>,
+    pub diagnostic: String,
 }
-const CHAPTERS: [&str; 17] = [
-    "关系、模式与元组",
-    "键与完整性约束",
-    "关系代数",
-    "数据定义 DDL",
-    "SELECT 与 WHERE",
-    "NULL 与 LIKE",
-    "聚合与分组",
-    "连接 JOIN",
-    "子查询",
-    "集合运算",
-    "数据修改 DML",
-    "视图与索引",
-    "存储过程与函数",
-    "触发器",
-    "事务与恢复性",
-    "隔离级别",
-    "可串行化调度",
-];
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, TS)]
+#[ts(export, export_to = "../../src/generated/")]
+pub struct TableDiff {
+    pub equal: bool,
+    pub expected: Vec<usize>,
+    pub actual: Vec<usize>,
+    pub columns_mismatch: bool,
+}
 pub fn catalog(seed: u64) -> Vec<Question> {
-    let age = 17 + (seed % 4);
-    let mut q = Vec::new();
-    macro_rules! add {($id:expr,$ch:expr,$title:expr,$kind:expr,$prompt:expr,$answer:expr)=>{{let ch=$ch;let source=if ch<=2{"02-(1)关系数据模型 - 数据结构、约束和基本操作.pdf"}else if ch==3{"02-(2)关系数据模型 - 复杂关系代数.pdf"}else if ch<=6{"03-(1)SQL-基础数据定义语言、基础数据操作语言.pdf"}else if ch<=14{"03-(2)SQL-复杂数据操作、高级数据定义-无索引版.pdf"}else{"04-(1)事务的概念、性质和调度.pdf"};q.push(Question{id:$id.into(),chapter:ch,chapter_title:CHAPTERS[ch-1].into(),title:$title.into(),prompt:$prompt.to_string(),starter:if $kind=="query"{"SELECT\nFROM Student;"}else{""}.into(),hint:"先确认输出列、重复行、NULL 和边界数据，再检查语句作用范围。".into(),solution:$answer.into(),explanation:"系统在隔离数据上运行参考答案与用户答案，比较语义结果；通过测试不代表证明所有数据库上的等价。".into(),kind:$kind.into(),engine:"sqlite".into(),fixture:"student".into(),source:source.into(),pages:"参见对应章节；本题为依据课件编写的练习".into(),ordered:false,check_names:false,probes:vec![],seed});}}}
-    add!("relation","1".parse::<usize>().unwrap(),"关系与元组","concept","填写 JSON：关系中一行的名称为 tuple，列的名称为 attribute。例：{\"row\":\"...\",\"column\":\"...\"}","{\"row\":\"tuple\",\"column\":\"attribute\"}");
-    add!(
-        "keys",
-        2,
-        "Student 的候选主键",
-        "concept",
-        "填写 JSON 数组：Student 中标识每名学生的主键列。",
-        "[\"Sno\"]"
-    );
-    add!("constraint",2,"带检查的成绩表","schema","创建 GradeBook(Sno TEXT 主键且 NOT NULL, Grade INTEGER NOT NULL，范围 0 到 100)。","CREATE TABLE GradeBook(Sno TEXT PRIMARY KEY NOT NULL, Grade INTEGER NOT NULL CHECK(Grade BETWEEN 0 AND 100));");
-    add!(
-        "algebra-filter",
-        3,
-        "选择与投影",
-        "algebra",
-        "使用关系代数返回年龄大于等于 18 岁学生的 Sno、Sname。",
-        "project{Sno,Sname}(select{Sage >= 18}(Student))"
-    );
-    add!(
-        "algebra-join",
-        3,
-        "自然连接",
-        "algebra",
-        "返回选修 1 号课程的学生 Sno、Sname、Grade。",
-        "project{Sno,Sname,Grade}(select{Cno = '1'}(join(Student,SC)))"
-    );
-    add!(
-        "create",
-        4,
-        "创建课程笔记表",
-        "schema",
-        "创建 Note(Id INTEGER 主键, Body TEXT NOT NULL)。",
-        "CREATE TABLE Note(Id INTEGER PRIMARY KEY, Body TEXT NOT NULL);"
-    );
-    add!(
-        "alter",
-        4,
-        "增加备注字段",
-        "schema",
-        "为 Student 增加 Memo TEXT 列，保留原有数据。",
-        "ALTER TABLE Student ADD COLUMN Memo TEXT;"
-    );
-    add!(
-        "where",
-        5,
-        "按年龄筛选",
-        "query",
-        format!("返回年龄大于等于 {age} 的学生 Sno、Sname、Sage；不要求顺序。"),
-        format!("SELECT Sno,Sname,Sage FROM Student WHERE Sage >= {age}")
-    );
-    add!(
-        "projection",
-        5,
-        "选择输出列",
-        "query",
-        "按原数据重复次数返回 Sname、Sdept 两列，不要求排序。",
-        "SELECT Sname,Sdept FROM Student"
-    );
-    add!(
-        "null",
-        6,
-        "尚无成绩",
-        "query",
-        "返回成绩为 NULL 的选课记录 Sno、Cno。",
-        "SELECT Sno,Cno FROM SC WHERE Grade IS NULL"
-    );
-    add!(
-        "like",
-        6,
-        "姓张的学生",
-        "query",
-        "返回姓名以张开头的学生全部列。",
-        "SELECT * FROM Student WHERE Sname LIKE '张%'"
-    );
-    add!(
-        "aggregate",
-        7,
-        "各系平均年龄",
-        "query",
-        "返回 Sdept、平均年龄两列，只保留平均年龄大于 17 的系。",
-        "SELECT Sdept,AVG(Sage) FROM Student GROUP BY Sdept HAVING AVG(Sage)>17"
-    );
-    add!(
-        "count",
-        7,
-        "COUNT 的 NULL 行为",
-        "query",
-        "返回 SC 总行数和非 NULL 成绩数，共两列一行。",
-        "SELECT COUNT(*),COUNT(Grade) FROM SC"
-    );
-    add!(
-        "join",
-        8,
-        "学生成绩",
-        "query",
-        "返回有选课记录的学生 Sno、Sname、Cno、Grade。",
-        "SELECT S.Sno,S.Sname,C.Cno,C.Grade FROM Student S JOIN SC C ON S.Sno=C.Sno"
-    );
-    add!(
-        "left",
-        8,
-        "保留未选课学生",
-        "query",
-        "返回全部学生 Sno、Sname 及其 Cno，没有选课时 Cno 为 NULL。",
-        "SELECT S.Sno,S.Sname,C.Cno FROM Student S LEFT JOIN SC C ON S.Sno=C.Sno"
-    );
-    add!(
-        "subquery",
-        9,
-        "高于平均年龄",
-        "query",
-        "返回年龄高于全体学生平均年龄的 Sno、Sname。",
-        "SELECT Sno,Sname FROM Student WHERE Sage>(SELECT AVG(Sage) FROM Student)"
-    );
-    add!("correlated",9,"高于本系平均年龄","query","返回年龄高于本系平均年龄的 Sno、Sname。","SELECT S.Sno,S.Sname FROM Student S WHERE S.Sage>(SELECT AVG(T.Sage) FROM Student T WHERE T.Sdept=S.Sdept)");
-    add!(
-        "exists",
-        9,
-        "没有选课的学生",
-        "query",
-        "返回没有任何 SC 记录的学生 Sno。",
-        "SELECT S.Sno FROM Student S WHERE NOT EXISTS(SELECT 1 FROM SC WHERE SC.Sno=S.Sno)"
-    );
-    add!(
-        "union",
-        10,
-        "去重合并",
-        "query",
-        "返回 CS 系或年龄为 18 的学生 Sno，去除重复。",
-        "SELECT Sno FROM Student WHERE Sdept='CS' UNION SELECT Sno FROM Student WHERE Sage=18"
-    );
-    add!(
-        "except",
-        10,
-        "集合差",
-        "query",
-        "返回所有学生学号与选课学号的差集。",
-        "SELECT Sno FROM Student EXCEPT SELECT Sno FROM SC"
-    );
-    add!(
-        "update",
-        11,
-        "单系年龄增加",
-        "mutation",
-        "只把 CS 系学生的 Sage 加 1，其余所有数据保持不变。",
-        "UPDATE Student SET Sage=Sage+1 WHERE Sdept='CS';"
-    );
-    add!(
-        "delete",
-        11,
-        "删除空成绩记录",
-        "mutation",
-        "只删除 SC 中 Grade 为 NULL 的记录。",
-        "DELETE FROM SC WHERE Grade IS NULL;"
-    );
-    add!(
-        "view",
-        12,
-        "创建 CS 视图",
-        "schema",
-        "创建 CSStudents 视图，包含 CS 系学生 Sno、Sname。",
-        "CREATE VIEW CSStudents AS SELECT Sno,Sname FROM Student WHERE Sdept='CS';"
-    );
-    add!(
-        "index",
-        12,
-        "创建年龄索引",
-        "schema",
-        "创建名为 idx_student_age 的 Student(Sage) 索引。",
-        "CREATE INDEX idx_student_age ON Student(Sage);"
-    );
-    add!("procedure",13,"查询课程成绩的过程","routine","在 MySQL 创建过程 course_grades(IN p_cno VARCHAR(255))，返回该课 Sno、Grade，按 Sno 排序。","CREATE PROCEDURE course_grades(IN p_cno VARCHAR(255)) BEGIN SELECT Sno,Grade FROM SC WHERE Cno=p_cno ORDER BY Sno; END;");
-    add!("function",13,"求和函数","routine","在 MySQL 创建函数 sum_to(n INT)，返回 1 到 n 的和；n<=0 时为 0。","CREATE FUNCTION sum_to(n INT) RETURNS BIGINT DETERMINISTIC NO SQL RETURN IF(n>0,n*(n+1)/2,0);");
-    add!("trigger",14,"记录成绩变化","schema","创建 ChangeLog(Sno TEXT, OldGrade REAL, NewGrade REAL) 和触发器 grade_log：每次 UPDATE SC 的 Grade 后写入 OLD 与 NEW 成绩。","CREATE TABLE ChangeLog(Sno TEXT,OldGrade REAL,NewGrade REAL); CREATE TRIGGER grade_log AFTER UPDATE OF Grade ON SC BEGIN INSERT INTO ChangeLog VALUES(NEW.Sno,OLD.Grade,NEW.Grade); END;");
-    add!(
-        "rollback",
-        15,
-        "撤销修改",
-        "mutation",
-        "开启事务，将全部学生年龄改为 99，再回滚；保留原始数据库。",
-        "BEGIN; UPDATE Student SET Sage=99; ROLLBACK;"
-    );
-    add!(
-        "recovery",
-        15,
-        "不可恢复调度",
-        "concept",
-        "T1 写 A；T2 读 A；T2 提交；T1 回滚。填写 JSON：是否可恢复、是否无级联。",
-        "{\"recoverable\":false,\"cascadeless\":false}"
-    );
-    add!(
-        "isolation",
-        16,
-        "隔离级别矩阵",
-        "concept",
-        "按课本模型填写 JSON：读提交是否允许脏读、不可重复读、幻读。",
-        "{\"dirty\":false,\"nonrepeatable\":true,\"phantom\":true}"
-    );
-    add!("snapshot",16,"MySQL 快照读","concept","MySQL REPEATABLE READ 中普通 SELECT 与 SELECT FOR UPDATE 是否使用相同读取机制？填写 JSON 布尔值。","false");
-    add!("schedule",17,"冲突优先图","schedule","对 T1 read A; T2 write A; T1 write B; T2 read B 填写 JSON：{\"conflict_serializable\":布尔值,\"order\":[事务名,...]}。","{\"conflict_serializable\":true,\"order\":[\"T1\",\"T2\"]}");
-    add!(
-        "view-schedule",
-        17,
-        "盲写与视图等价",
-        "concept",
-        "T1 write A; T2 write A; T1 write A。填写 JSON：是否冲突可串行化、是否视图可串行化。",
-        "{\"conflict_serializable\":false,\"view_serializable\":true}"
-    );
-    for question in &mut q {
-        question.pages = match question.id.as_str() {
-            "relation" => "pp.10–18",
-            "keys" => "pp.20–22",
-            "constraint" => "pp.27–34（SQLite 语法改编）",
-            "algebra-filter" => "pp.13–14",
-            "algebra-join" => "pp.41–43",
-            "create" => "pp.9–14",
-            "alter" => "pp.27–29",
-            "where" => "pp.56–60",
-            "projection" => "pp.54–55, 64–65",
-            "null" => "pp.68–70",
-            "like" => "pp.61–62",
-            "aggregate" => "pp.18–26",
-            "count" => "pp.14–17",
-            "join" => "pp.29–30",
-            "left" => "p.31",
-            "subquery" => "pp.33–37",
-            "correlated" => "pp.38–41",
-            "exists" => "pp.42–45",
-            "union" | "except" => "pp.50–51",
-            "update" => "pp.55–58",
-            "delete" => "pp.59–62",
-            "view" => "pp.33–36",
-            "index" => "pp.43–49",
-            "procedure" => "pp.66–69",
-            "function" => "pp.70–81",
-            "trigger" => "pp.83–89（SQLite 语法改编）",
-            "rollback" => "pp.11–12, 18",
-            "recovery" => "pp.26–29",
-            "isolation" | "snapshot" => "pp.37–48；MySQL 快照读为补充",
-            "schedule" => "pp.54–61",
-            _ => "pp.65–79",
-        }
-        .into();
-        if matches!(question.id.as_str(), "view" | "index") {
-            question.source = "03-(1)SQL-基础数据定义语言、基础数据操作语言.pdf".into();
-        }
-        match question.id.as_str() {
-            "constraint" => {
-                question.fixture = "empty".into();
-                question.probes = vec![
-                    "INSERT INTO GradeBook VALUES('s1',90)".into(),
-                    "INSERT INTO GradeBook VALUES('s2',101)".into(),
-                    "INSERT INTO GradeBook VALUES(NULL,50)".into(),
-                    "INSERT INTO GradeBook VALUES('s3',NULL)".into(),
-                    "INSERT INTO GradeBook VALUES('s4',-1)".into(),
-                ];
-            }
-            "create" => question.fixture = "empty".into(),
-            "trigger" => {
-                question.probes = vec![
-                    "UPDATE SC SET Grade=COALESCE(Grade,0)+1 WHERE Grade IS NULL OR Grade<99"
-                        .into(),
-                ]
-            }
-            "procedure" => {
-                question.engine = "mysql".into();
-                question.probes = vec![
-                    "CALL course_grades('1')".into(),
-                    "CALL course_grades('2')".into(),
-                    "CALL course_grades('none')".into(),
-                ];
-                question.ordered = true;
-            }
-            "function" => {
-                question.engine = "mysql".into();
-                question.probes = vec!["SELECT sum_to(10),sum_to(0),sum_to(-1),sum_to(100)".into()];
-            }
-            "algebra-filter" => question.pages = "基本操作；复杂关系代数 pp.13–14".into(),
-            "algebra-join" => question.pages = "pp.41–43".into(),
-            "isolation" => question.pages = "pp.38–48".into(),
-            "schedule" => question.pages = "pp.54–60".into(),
-            "view-schedule" => question.pages = "pp.67–79".into(),
-            _ => {}
+    let mut questions: Vec<Question> =
+        serde_json::from_str(include_str!("../../curriculum/questions.json"))
+            .expect("validated bundled question catalogue");
+    let age = (17 + seed % 4).to_string();
+    for q in &mut questions {
+        q.seed = seed;
+        if q.id == "where" {
+            q.prompt = q.prompt.replace("{{age}}", &age);
+            q.solution = q.solution.replace("{{age}}", &age);
         }
     }
-    q
+    crate::learning::enrich(&mut questions);
+    questions
 }
+
 fn numeric(c: &Cell) -> Option<Decimal> {
     match c {
         Cell::Integer(s) | Cell::Unsigned(s) | Cell::Decimal(s) => Decimal::from_str(s).ok(),
@@ -422,25 +147,42 @@ fn row_order(a: &[Cell], b: &[Cell]) -> Ordering {
     }
     a.len().cmp(&b.len())
 }
-pub fn tables_equal(a: &Table, b: &Table, ordered: bool, names: bool) -> bool {
-    if a.truncated
-        || b.truncated
-        || a.columns.len() != b.columns.len()
-        || a.rows.len() != b.rows.len()
-        || names && a.columns != b.columns
-    {
-        return false;
-    }
-    let mut a = a.rows.iter().collect::<Vec<_>>();
-    let mut b = b.rows.iter().collect::<Vec<_>>();
+pub fn compare_tables(a: &Table, b: &Table, ordered: bool, names: bool) -> TableDiff {
+    let columns_mismatch = a.columns.len() != b.columns.len() || names && a.columns != b.columns;
+    let mut diff = TableDiff {
+        equal: !a.truncated && !b.truncated && !columns_mismatch,
+        columns_mismatch,
+        ..TableDiff::default()
+    };
+    let mut left: Vec<_> = a.rows.iter().enumerate().collect();
+    let mut right: Vec<_> = b.rows.iter().enumerate().collect();
     if !ordered {
-        a.sort_by(|x, y| row_order(x, y));
-        b.sort_by(|x, y| row_order(x, y));
+        left.sort_by(|x, y| row_order(x.1, y.1));
+        right.sort_by(|x, y| row_order(x.1, y.1));
     }
-    a.iter()
-        .zip(b)
-        .all(|(x, y)| x.len() == y.len() && x.iter().zip(y).all(|(x, y)| equal(x, y)))
+    for i in 0..left.len().max(right.len()) {
+        let same = match (left.get(i), right.get(i)) {
+            (Some((_, x)), Some((_, y))) => {
+                x.len() == y.len() && x.iter().zip(y.iter()).all(|(x, y)| equal(x, y))
+            }
+            _ => false,
+        };
+        if !same || columns_mismatch {
+            diff.equal = false;
+            if let Some((n, _)) = left.get(i) {
+                diff.expected.push(*n)
+            }
+            if let Some((n, _)) = right.get(i) {
+                diff.actual.push(*n)
+            }
+        }
+    }
+    diff
 }
+pub fn tables_equal(a: &Table, b: &Table, ordered: bool, names: bool) -> bool {
+    compare_tables(a, b, ordered, names).equal
+}
+
 fn grade_result(
     status: &str,
     message: impl ToString,
@@ -448,7 +190,22 @@ fn grade_result(
     expected: Option<Table>,
     actual: Option<Table>,
 ) -> Grade {
+    let diff = expected
+        .as_ref()
+        .zip(actual.as_ref())
+        .map(|(a, b)| compare_tables(a, b, false, false));
     Grade {
+        diff,
+        diagnostic: if status == "passed" {
+            "passed"
+        } else if status == "incomplete" {
+            "incomplete"
+        } else if cases > 0 {
+            "boundary_data"
+        } else {
+            "public_data"
+        }
+        .into(),
         status: status.into(),
         message: message.to_string(),
         cases,
@@ -675,7 +432,7 @@ pub fn grade(id: &str, answer: &str, seed: u64, b: &Budget) -> Grade {
             None,
         ))
     })();
-    run.unwrap_or_else(|e| {
+    let mut result = run.unwrap_or_else(|e| {
         grade_result(
             if b.check().is_err() || e.contains("超") || e.contains("限制") {
                 "incomplete"
@@ -687,8 +444,18 @@ pub fn grade(id: &str, answer: &str, seed: u64, b: &Budget) -> Grade {
             None,
             None,
         )
-    })
+    });
+    result.diff = result
+        .expected
+        .as_ref()
+        .zip(result.actual.as_ref())
+        .map(|(a, b)| compare_tables(a, b, q.ordered, q.check_names));
+    if result.cases > 0 && result.status == "failed" {
+        result.message = "隐藏边界数据未通过；请检查 NULL、重复次数、作用范围与排序约定".into();
+    }
+    result
 }
+
 type Dump = BTreeMap<String, (Vec<(String, String, bool, bool)>, Table, Vec<String>)>;
 fn dump(c: &rusqlite::Connection, b: &Budget) -> Result<Dump, String> {
     let s = database::schema(c)?;

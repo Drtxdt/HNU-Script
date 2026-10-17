@@ -1,0 +1,299 @@
+{
+  "relation": {
+    "knowledge": "关系、元组和属性",
+    "hints": [
+      "观察 Student：横向是一名学生，纵向是同一种信息。",
+      "一行称为 tuple，一列称为 attribute。",
+      "用行名和列名分别填入 row、column。"
+    ],
+    "explanation": "关系是一张具有属性的表；元组对应一行，属性对应一列。常见错误是把字段值当成属性名。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "keys": {
+    "knowledge": "主键",
+    "hints": [
+      "同名学生能否只靠姓名区分？",
+      "主键必须唯一标识记录，姓名不能保证唯一。",
+      "从 Student 的键标记中选择 Sno。"
+    ],
+    "explanation": "Sno 标识学生；Sname 可能重复。常见错误是把样例中恰好唯一的值当成长期约束。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "constraint": {
+    "knowledge": "完整性约束",
+    "hints": [
+      "尝试思考 NULL、负分和 101 分是否应该出现。",
+      "PRIMARY KEY、NOT NULL 和 CHECK 各自约束不同性质。",
+      "CREATE TABLE GradeBook(Sno TEXT PRIMARY KEY NOT NULL, Grade INTEGER NOT NULL CHECK(...));"
+    ],
+    "explanation": "范围检查不能替代 NOT NULL；NULL 的检查结果可能为 UNKNOWN。常见错误是只限制上界。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "algebra-filter": {
+    "knowledge": "选择和投影",
+    "hints": [
+      "先决定哪些行需要保留，再决定哪些列需要输出。",
+      "select 选择行，project 选择列。",
+      "project{Sno,Sname}(select{...}(Student))"
+    ],
+    "explanation": "先按年龄选择，再投影 Sno、Sname；独立代数采用集合语义。常见错误是投影后丢失筛选列。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "algebra-join": {
+    "knowledge": "自然连接",
+    "hints": [
+      "选课编号在 SC，姓名在 Student。",
+      "join 按同名属性自然连接，再筛选课程。",
+      "project{Sno,Sname,Grade}(select{...}(join(Student,SC)))"
+    ],
+    "explanation": "自然连接关联同名列。常见错误是把 Course 的名称和选课记录混为同一关系。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "create": {
+    "knowledge": "创建表",
+    "hints": [
+      "哪些列必须始终有值？",
+      "INTEGER PRIMARY KEY 和 TEXT NOT NULL 分别定义标识与内容约束。",
+      "CREATE TABLE Note(Id ... , Body ...);"
+    ],
+    "explanation": "主键和非空内容是结构行为。常见错误是用一行样例数据代替创建结构。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "alter": {
+    "knowledge": "修改结构",
+    "hints": [
+      "已有 Student 数据应该保留。",
+      "ALTER TABLE ADD COLUMN 可以增加可空列。",
+      "ALTER TABLE Student ADD COLUMN ... TEXT;"
+    ],
+    "explanation": "增加 Memo 列后旧数据仍存在，默认值为 NULL。常见错误是删表重建造成数据丢失。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "where": {
+    "knowledge": "WHERE 筛选",
+    "hints": [
+      "先查看题目当前种子的年龄阈值。",
+      "使用 >=，输出 Sno、Sname、Sage。",
+      "SELECT Sno,Sname,Sage FROM Student WHERE Sage >= ...;"
+    ],
+    "explanation": "WHERE 只保留比较为 TRUE 的学生。常见错误是写死旧种子阈值或漏掉恰好等于阈值的学生。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "projection": {
+    "knowledge": "输出列与重复行",
+    "hints": [
+      "姓名和院系相同的两人仍是两条记录。",
+      "SELECT 默认保留重复次数，DISTINCT 才去重。",
+      "SELECT Sname,Sdept FROM ...;"
+    ],
+    "explanation": "投影两列但保留原记录的重复次数。常见错误是多加 DISTINCT。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "null": {
+    "knowledge": "NULL",
+    "hints": [
+      "没有成绩与成绩为零不同。",
+      "使用 IS NULL，而不是 = NULL。",
+      "SELECT Sno,Cno FROM SC WHERE ... IS NULL;"
+    ],
+    "explanation": "与 NULL 的普通比较得到 UNKNOWN，不能用于找空值。常见错误是把零分当成空成绩。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "like": {
+    "knowledge": "LIKE",
+    "hints": [
+      "题目要求姓张，而不是名字中任意位置出现张。",
+      "百分号匹配零个或多个字符。",
+      "SELECT * FROM Student WHERE Sname LIKE '张...';"
+    ],
+    "explanation": "张% 匹配以张开头的姓名。常见错误是使用 %张% 扩大匹配范围。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "aggregate": {
+    "knowledge": "分组与 HAVING",
+    "hints": [
+      "区分原始学生和聚合后的院系组。",
+      "GROUP BY 形成分组，HAVING 筛选组，WHERE 筛选原始行。",
+      "SELECT Sdept,COUNT(*) ... GROUP BY Sdept HAVING ...;"
+    ],
+    "explanation": "聚合先按组计算，再按题目筛选与排序。常见错误是在 WHERE 中放聚合条件。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "count": {
+    "knowledge": "COUNT 与 NULL",
+    "hints": [
+      "COUNT(*) 统计记录，COUNT(Grade) 统计非空成绩。",
+      "NULL 不进入 COUNT(列) 的计数。",
+      "SELECT COUNT(...),COUNT(...) FROM SC;"
+    ],
+    "explanation": "两种计数含义不同；没有成绩的选课仍是一条选课记录。常见错误是认为两者总相同。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "join": {
+    "knowledge": "内连接",
+    "hints": [
+      "姓名与成绩位于不同关系，需要通过学号匹配。",
+      "JOIN ... ON 指定匹配键，课程筛选必须来自选课记录。",
+      "SELECT ... FROM Student S JOIN SC C ON S.Sno=C.Sno WHERE ...;"
+    ],
+    "explanation": "内连接只保留匹配记录，一名学生多条选课产生多行。常见错误是遗漏连接条件导致笛卡尔积。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "left": {
+    "knowledge": "LEFT JOIN",
+    "hints": [
+      "没有选课的学生是否也应该出现在输出？",
+      "LEFT JOIN 保留左侧未匹配行，右侧补 NULL。",
+      "SELECT ... FROM Student S LEFT JOIN SC C ON ...;"
+    ],
+    "explanation": "外连接保留未匹配学生。常见错误是在 WHERE 中筛掉右侧 NULL，改变保留行为。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "subquery": {
+    "knowledge": "非相关子查询",
+    "hints": [
+      "先考虑子查询能返回一个值还是多个值。",
+      "子查询可计算聚合值，外层再比较。",
+      "SELECT ... FROM Student WHERE Sage > (SELECT ...);"
+    ],
+    "explanation": "内层与外层分别求值。常见错误是拿多行子查询当单个标量使用。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "correlated": {
+    "knowledge": "相关子查询",
+    "hints": [
+      "每位学生应该与自己所在院系比较。",
+      "内层通过不同别名引用外层 Sdept。",
+      "SELECT ... FROM Student S WHERE S.Sage > (SELECT AVG(T.Sage) FROM Student T WHERE ...);"
+    ],
+    "explanation": "相关子查询的条件取决于当前外层记录。常见错误是漏掉院系关联，变成全校平均值。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "exists": {
+    "knowledge": "NOT EXISTS",
+    "hints": [
+      "没有选课意味着找不到学号匹配的 SC 记录。",
+      "NOT EXISTS 判断相关子查询是否不存在记录。",
+      "SELECT S.Sno FROM Student S WHERE NOT EXISTS(SELECT 1 FROM SC WHERE ...);"
+    ],
+    "explanation": "存在性判断不会因选课重复而重复输出学生。常见错误是使用含 NULL 的 NOT IN 而改变语义。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "union": {
+    "knowledge": "集合并",
+    "hints": [
+      "同一学生可能同时满足两个条件。",
+      "UNION 合并并去重，UNION ALL 保留重复。",
+      "SELECT Sno FROM Student WHERE ... UNION SELECT Sno FROM Student WHERE ...;"
+    ],
+    "explanation": "两个分支按列位置合并，满足两条件的学生只出现一次。常见错误是使用 UNION ALL。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "except": {
+    "knowledge": "集合差",
+    "hints": [
+      "题目要找出现在左侧、没有出现在右侧的学号。",
+      "EXCEPT 按集合语义求差。",
+      "SELECT Sno FROM Student EXCEPT SELECT Sno FROM ...;"
+    ],
+    "explanation": "集合差去重。常见错误是反转左右关系。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "update": {
+    "knowledge": "限定更新",
+    "hints": [
+      "只有 CS 系学生应该变化。",
+      "UPDATE 的 WHERE 决定受影响范围。",
+      "UPDATE Student SET Sage=Sage+1 WHERE ...;"
+    ],
+    "explanation": "在原年龄上加一并保留其他记录。常见错误是漏掉 WHERE 或将年龄全部设成一个常量。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "delete": {
+    "knowledge": "限定删除",
+    "hints": [
+      "空成绩与低分记录是不同集合。",
+      "DELETE 删除整行，IS NULL 判断空值。",
+      "DELETE FROM SC WHERE ...;"
+    ],
+    "explanation": "仅删除空成绩的选课记录。常见错误是删除学生表或把空成绩更新成零。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "view": {
+    "knowledge": "视图",
+    "hints": [
+      "视图保存查询定义，后续应该反映底层变化。",
+      "CREATE VIEW ... AS SELECT 定义视图。",
+      "CREATE VIEW CSStudents AS SELECT Sno,Sname FROM Student WHERE ...;"
+    ],
+    "explanation": "视图不是一次复制出来的普通表。常见错误是创建静态表代替视图。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "index": {
+    "knowledge": "索引",
+    "hints": [
+      "索引应建立在哪张表的哪个字段上？",
+      "CREATE INDEX 指定索引名、表和列。",
+      "CREATE INDEX idx_student_age ON Student(...);"
+    ],
+    "explanation": "索引改变访问结构，不改变查询结果。常见错误是建错字段或漏掉指定名称。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "procedure": {
+    "knowledge": "MySQL 存储过程",
+    "hints": [
+      "过程参数需要用于筛选课程，输出需要排序。",
+      "CREATE PROCEDURE 定义 IN 参数，CALL 调用。",
+      "CREATE PROCEDURE course_grades(IN p_cno VARCHAR(255)) BEGIN SELECT ...; END;"
+    ],
+    "explanation": "过程接收课程号并按学生学号返回成绩。常见错误是把参数名写成字符串常量；本题需要 MySQL。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "function": {
+    "knowledge": "MySQL 函数",
+    "hints": [
+      "n 为零或负数时应该返回什么？",
+      "函数使用 RETURNS 声明结果类型。",
+      "CREATE FUNCTION sum_to(n INT) RETURNS BIGINT DETERMINISTIC NO SQL RETURN IF(...);"
+    ],
+    "explanation": "正整数求和可使用 n*(n+1)/2，非正数为零。常见错误是漏掉边界分支或选择过小整数类型；需要 MySQL。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "trigger": {
+    "knowledge": "触发器",
+    "hints": [
+      "触发前后的成绩分别从哪里取得？",
+      "OLD 与 NEW 分别表示修改前后值。",
+      "CREATE TRIGGER grade_log AFTER UPDATE OF Grade ON SC BEGIN INSERT INTO ChangeLog ...; END;"
+    ],
+    "explanation": "每次更新 Grade 记录旧值与新值，包含 NULL。常见错误是只记录非空成绩或将 OLD 与 NEW 反转。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "rollback": {
+    "knowledge": "回滚",
+    "hints": [
+      "必须先在事务中实际改变数据，再撤销。",
+      "BEGIN 与 ROLLBACK 围住修改语句。",
+      "BEGIN; UPDATE Student SET ...; ROLLBACK;"
+    ],
+    "explanation": "回滚恢复事务前状态。常见错误是只写 ROLLBACK 而没有发生题目要求的修改。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "recovery": {
+    "knowledge": "可恢复与无级联",
+    "hints": [
+      "T2 是否读取了尚未提交的 T1 写入？",
+      "可恢复要求依赖事务不能先于被依赖事务提交。",
+      "分别判断 recoverable 和 cascadeless。"
+    ],
+    "explanation": "T2 提交后 T1 回滚，调度不可恢复，且存在脏读。常见错误是把没有等待当成无级联。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "isolation": {
+    "knowledge": "隔离级别",
+    "hints": [
+      "读提交只保证不读取未提交的数据。",
+      "不可重复读与幻读分别涉及同一行变化与记录集合变化。",
+      "按 dirty、nonrepeatable、phantom 分别判断。"
+    ],
+    "explanation": "课本读提交模型禁止脏读，仍允许不可重复读与幻读。常见错误是与可重复读混淆。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "snapshot": {
+    "knowledge": "快照读与当前读",
+    "hints": [
+      "普通 SELECT 与 FOR UPDATE 的目标是否相同？",
+      "普通读取可用快照，加锁读取需要当前版本并施加锁。",
+      "选择是否使用相同读取机制。"
+    ],
+    "explanation": "MySQL 可重复读下两类读取机制不同。常见错误是把隔离级别名称理解成每种读取都相同。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "schedule": {
+    "knowledge": "冲突优先图",
+    "hints": [
+      "分别找出 A 和 B 上的跨事务冲突。",
+      "读写或写读同一数据项形成有向边。",
+      "先确定 T1、T2 的边，再给出拓扑顺序。"
+    ],
+    "explanation": "两条冲突均从 T1 指向 T2，因此顺序为 T1、T2。常见错误是把不同数据项也连成冲突边。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  },
+  "view-schedule": {
+    "knowledge": "视图与冲突等价",
+    "hints": [
+      "三次盲写中最终写入者是谁？",
+      "冲突图有环并不排除存在视图等价串行调度。",
+      "分别判断 conflict_serializable 与 view_serializable。"
+    ],
+    "explanation": "冲突图有环，但盲写可保持最终写入者而得到视图等价。常见错误是把两种可串行化合并判断。 边界验证使用隔离数据，通过测试不代表任意数据库上的等价证明。"
+  }
+}

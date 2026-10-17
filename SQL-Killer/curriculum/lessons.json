@@ -1,0 +1,38 @@
+[
+  {
+    "id": "rows",
+    "title": "认识行与列",
+    "explanation": "每一行是一条独立记录，每一列描述同一种属性。先区分学号、姓名与某个具体姓名值。",
+    "question": "relation"
+  },
+  {
+    "id": "columns",
+    "title": "选择输出列",
+    "explanation": "只请求所需属性；重复值仍然可能属于不同学生。",
+    "question": "projection"
+  },
+  {
+    "id": "filter",
+    "title": "筛选需要的记录",
+    "explanation": "WHERE 判断每一行；请先预测边界值是否应该保留。",
+    "question": "where"
+  },
+  {
+    "id": "nulls",
+    "title": "理解尚未知晓的数据",
+    "explanation": "NULL 与零、空字符串不同。尝试 IS NULL 并观察 COUNT。",
+    "question": "null"
+  },
+  {
+    "id": "groups",
+    "title": "从记录走向分组",
+    "explanation": "先按键分组，再计算 COUNT 和 AVG；HAVING 检查整个组。",
+    "question": "aggregate"
+  },
+  {
+    "id": "joins",
+    "title": "连接分散的信息",
+    "explanation": "用键连接两张表，比较 INNER JOIN 与 LEFT JOIN 如何处理没有选课的学生。",
+    "question": "left"
+  }
+]

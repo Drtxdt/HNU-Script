@@ -1,0 +1,90 @@
+[
+  {
+    "id": "where-truth",
+    "title": "WHERE 真值",
+    "prompt": "与 NULL 使用等号比较，会保留多少行？",
+    "choices": [
+      "0",
+      "1"
+    ],
+    "sql": "SELECT COUNT(*) FROM SC WHERE Grade = NULL",
+    "explanation": "UNKNOWN 不进入 WHERE 结果。"
+  },
+  {
+    "id": "null-test",
+    "title": "NULL 判断",
+    "prompt": "NULL IS NULL 的结果是什么？",
+    "choices": [
+      "0",
+      "1"
+    ],
+    "sql": "SELECT NULL IS NULL",
+    "explanation": "IS NULL 能明确检查空值。"
+  },
+  {
+    "id": "distinct",
+    "title": "去除重复",
+    "prompt": "1、1、2 经 DISTINCT 后有多少行？",
+    "choices": [
+      "2",
+      "3"
+    ],
+    "sql": "SELECT COUNT(*) FROM (SELECT DISTINCT v FROM (SELECT 1 v UNION ALL SELECT 1 UNION ALL SELECT 2))",
+    "explanation": "DISTINCT 合并同值结果。"
+  },
+  {
+    "id": "count-null",
+    "title": "两种 COUNT",
+    "prompt": "三个值 1、NULL、2，COUNT(*) / COUNT(v) 是多少？",
+    "choices": [
+      "3 / 3",
+      "3 / 2"
+    ],
+    "sql": "WITH T(v) AS (VALUES(1),(NULL),(2)) SELECT COUNT(*) || ' / ' || COUNT(v) FROM T",
+    "explanation": "COUNT(列) 跳过 NULL，COUNT(*) 不跳过。"
+  },
+  {
+    "id": "having",
+    "title": "分组与 HAVING",
+    "prompt": "a、a、b 按值分组并保留 COUNT(*)>1，还剩几组？",
+    "choices": [
+      "1",
+      "2"
+    ],
+    "sql": "WITH T(v) AS (VALUES('a'),('a'),('b')) SELECT COUNT(*) FROM (SELECT v FROM T GROUP BY v HAVING COUNT(*)>1)",
+    "explanation": "HAVING 检查聚合后的组。"
+  },
+  {
+    "id": "outer-join",
+    "title": "LEFT 与 INNER JOIN",
+    "prompt": "左表 1、2，右表只有 1；LEFT / INNER 的行数？",
+    "choices": [
+      "2 / 1",
+      "1 / 1"
+    ],
+    "sql": "WITH A(n) AS (VALUES(1),(2)),B(n) AS (VALUES(1)) SELECT (SELECT COUNT(*) FROM A LEFT JOIN B ON A.n=B.n)||' / '||(SELECT COUNT(*) FROM A JOIN B ON A.n=B.n)",
+    "explanation": "LEFT JOIN 保留未匹配左行并补 NULL。"
+  },
+  {
+    "id": "on-where",
+    "title": "条件放在哪里",
+    "prompt": "同一右侧匹配条件放在 LEFT JOIN 的 ON / WHERE，行数是多少？",
+    "choices": [
+      "2 / 1",
+      "2 / 2"
+    ],
+    "sql": "WITH A(n) AS (VALUES(1),(2)),B(n) AS (VALUES(1)) SELECT (SELECT COUNT(*) FROM A LEFT JOIN B ON A.n=B.n AND B.n=1)||' / '||(SELECT COUNT(*) FROM A LEFT JOIN B ON A.n=B.n WHERE B.n=1)",
+    "explanation": "WHERE 会过滤右侧补 NULL 的行。"
+  },
+  {
+    "id": "oversubscription",
+    "title": "并发超额",
+    "prompt": "39 名学生之后两个不同学生都成功提交，实际人数？",
+    "choices": [
+      "40",
+      "41"
+    ],
+    "sql": "SELECT 39+2",
+    "explanation": "实际记录为 41；两次覆盖写入计数 40 不代表只有 40 条记录。"
+  }
+]

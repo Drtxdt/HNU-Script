@@ -211,6 +211,23 @@ pub async fn execute(c: &mut Conn, source: &str, budget: &Budget) -> Execution {
     }
     .into();
     Execution {
+        modified: results.iter().any(|r| {
+            r.affected > 0
+                || crate::script::tokenize(&r.sql).first().is_some_and(|t| {
+                    matches!(
+                        t.text.to_uppercase().as_str(),
+                        "CREATE"
+                            | "ALTER"
+                            | "DROP"
+                            | "TRUNCATE"
+                            | "INSERT"
+                            | "UPDATE"
+                            | "DELETE"
+                            | "REPLACE"
+                            | "CALL"
+                    )
+                })
+        }),
         results,
         status,
         error,

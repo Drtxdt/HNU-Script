@@ -1,6 +1,7 @@
-param([string]$Label='1.1.0',[switch]$PortableOnly)
+param([string]$Label='',[switch]$PortableOnly)
 $ErrorActionPreference='Stop'
 $projectRoot=Split-Path $PSScriptRoot -Parent
+if(-not $Label){$Label=(Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json).version}
 Set-Location $projectRoot
 $out=Join-Path $projectRoot 'release'
 $portable=Join-Path $out "SQL-Killer-$Label-Windows-x64"
