@@ -37,7 +37,29 @@ fn stage_zero_database_cannot_preview_or_query_logs() {
 #[test]
 fn legacy_case_keeps_conclusion_and_moves_links_to_ordinary_relations() {
     let mut p:cases::CaseProgress=serde_json::from_value(serde_json::json!({"version":1,"seed":0,"task":"capacity","answers":{},"completed":[],"evidence":[],"cause":"stale_read","model_strategy":"row_lock","mysql_strategy":"","closed":true})).unwrap();
+    let a = cases::EvidenceSnapshot {
+        id: "a".into(),
+        task: "capacity".into(),
+        sql: "SELECT 1".into(),
+        table: Default::default(),
+        case_version: 1,
+        seed: 0,
+        snapshot: cases::snapshot(0),
+        note: String::new(),
+        hypothesis: String::new(),
+        links: vec!["b".into()],
+    };
+    let mut b = a.clone();
+    b.id = "b".into();
+    b.links.clear();
+    p.evidence = vec![a, b];
     ux::migrate(&mut p);
+    assert_eq!(p.board.relations.len(), 1);
+    assert_eq!(p.board.relations[0].kind, "related");
+    assert!(p.evidence[0].links.is_empty());
+    p.board.relations.clear();
+    ux::migrate(&mut p);
+    assert!(p.board.relations.is_empty());
     assert!(p.closed);
     assert_eq!(p.closure_revision, 0);
     assert_eq!(p.mode, "guided");

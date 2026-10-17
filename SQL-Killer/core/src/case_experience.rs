@@ -194,7 +194,7 @@ pub fn migrate(p: &mut CaseProgress) {
     if p.mode.is_empty() {
         p.mode = "guided".into();
     }
-    for (i, e) in p.evidence.iter().enumerate() {
+    for (i, e) in p.evidence.iter_mut().enumerate() {
         p.board
             .cards
             .entry(e.id.clone())
@@ -204,12 +204,13 @@ pub fn migrate(p: &mut CaseProgress) {
                 view: "table".into(),
                 ..Default::default()
             });
-        for target in &e.links {
+        // Consume the legacy representation so a deleted migrated edge stays deleted.
+        for target in std::mem::take(&mut e.links) {
             if !p
                 .board
                 .relations
                 .iter()
-                .any(|r| r.from == e.id && r.to == *target)
+                .any(|r| r.from == e.id && r.to == target)
             {
                 p.board.relations.push(EvidenceRelation {
                     from: e.id.clone(),
